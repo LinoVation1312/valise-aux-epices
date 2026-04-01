@@ -6,7 +6,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 
-# ReportLab imports
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import cm
@@ -35,20 +34,13 @@ st.set_page_config(
 # --- CSS PERSONNALISÉ ---
 st.markdown("""
 <style>
-    /* Import Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
 
-    /* Fond général */
-    .stApp {
-        background-color: #FDFAF5;
-    }
-
-    /* Masquer les éléments Streamlit par défaut */
+    .stApp { background-color: #FDFAF5; }
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* Titre principal */
     h1 {
         font-family: 'Cormorant Garamond', serif !important;
         color: #3B2A1A !important;
@@ -57,8 +49,6 @@ st.markdown("""
         letter-spacing: 2px;
         font-weight: 600;
     }
-
-    /* Sous-titres */
     h3 {
         font-family: 'Cormorant Garamond', serif !important;
         color: #7A4F2E !important;
@@ -68,158 +58,88 @@ st.markdown("""
         padding-bottom: 6px;
         margin-top: 1.5rem !important;
     }
+    p, label, div { font-family: 'Lato', sans-serif !important; color: #3B2A1A; }
 
-    /* Texte général */
-    p, label, div {
-        font-family: 'Lato', sans-serif !important;
-        color: #3B2A1A;
-    }
-
-    /* Inputs */
     .stTextInput > div > div > input {
-        border: 1.5px solid #D4A96A;
-        border-radius: 8px;
-        background-color: #FFFDF8;
-        color: #3B2A1A;
-        font-family: 'Lato', sans-serif;
+        border: 1.5px solid #D4A96A; border-radius: 8px;
+        background-color: #FFFDF8; color: #3B2A1A; font-family: 'Lato', sans-serif;
     }
     .stTextInput > div > div > input:focus {
-        border-color: #C47C2B;
-        box-shadow: 0 0 0 2px rgba(196,124,43,0.2);
+        border-color: #C47C2B; box-shadow: 0 0 0 2px rgba(196,124,43,0.2);
     }
+    .stSelectbox > div > div { border: 1.5px solid #D4A96A; border-radius: 8px; background-color: #FFFDF8; }
+    .stCheckbox > label { font-family: 'Lato', sans-serif !important; font-size: 0.95rem; color: #3B2A1A; }
 
-    /* Selectbox */
-    .stSelectbox > div > div {
-        border: 1.5px solid #D4A96A;
-        border-radius: 8px;
-        background-color: #FFFDF8;
-    }
-
-    /* Checkboxes */
-    .stCheckbox > label {
-        font-family: 'Lato', sans-serif !important;
-        font-size: 0.95rem;
-        color: #3B2A1A;
-    }
-
-    /* Bouton principal */
     .stFormSubmitButton > button {
-        background-color: #C47C2B !important;
-        color: white !important;
-        font-family: 'Cormorant Garamond', serif !important;
-        font-weight: 700 !important;
-        font-size: 1.15rem !important;
-        border: none !important;
-        border-radius: 10px !important;
-        padding: 0.7rem 2.5rem !important;
-        width: 100%;
-        transition: background-color 0.3s;
-        letter-spacing: 1.5px;
+        background-color: #C47C2B !important; color: white !important;
+        font-family: 'Cormorant Garamond', serif !important; font-weight: 700 !important;
+        font-size: 1.15rem !important; border: none !important; border-radius: 10px !important;
+        padding: 0.7rem 2.5rem !important; width: 100%; transition: background-color 0.3s; letter-spacing: 1.5px;
     }
-    .stFormSubmitButton > button:hover {
-        background-color: #A5621E !important;
-    }
+    .stFormSubmitButton > button:hover { background-color: #A5621E !important; }
 
-    /* Download button */
     .stDownloadButton > button {
-        background-color: #C47C2B !important;
-        color: #FFFFFF !important;
-        font-family: 'Cormorant Garamond', serif !important;
-        font-weight: 700 !important;
-        font-size: 1.1rem !important;
-        letter-spacing: 1px !important;
-        border: none !important;
-        border-radius: 10px !important;
-        width: 100%;
-        padding: 0.75rem 1.5rem !important;
+        background-color: #C47C2B !important; color: #FFFFFF !important;
+        font-family: 'Cormorant Garamond', serif !important; font-weight: 700 !important;
+        font-size: 1.1rem !important; letter-spacing: 1px !important; border: none !important;
+        border-radius: 10px !important; width: 100%; padding: 0.75rem 1.5rem !important;
         box-shadow: 0 3px 10px rgba(196,124,43,0.4) !important;
-        transition: background-color 0.3s, box-shadow 0.3s !important;
     }
-    .stDownloadButton > button:hover {
-        background-color: #A5621E !important;
-        box-shadow: 0 5px 15px rgba(196,124,43,0.5) !important;
-    }
-    .stDownloadButton > button p {
-        color: #FFFFFF !important;
-    }
+    .stDownloadButton > button:hover { background-color: #A5621E !important; }
+    .stDownloadButton > button p { color: #FFFFFF !important; }
 
-    /* Radio */
     .stRadio > div {
-        background-color: #FEF6E8;
-        border-radius: 10px;
-        padding: 12px 16px;
-        border: 1.5px solid #E8C99A;
+        background-color: #FEF6E8; border-radius: 10px;
+        padding: 12px 16px; border: 1.5px solid #E8C99A;
     }
 
-    /* Cards de plats */
-    .dish-card {
-        background: white;
-        border: 1.5px solid #E8C99A;
-        border-radius: 12px;
-        padding: 10px 14px;
-        margin: 4px 0;
-        transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .dish-card:hover {
-        border-color: #C47C2B;
-        box-shadow: 0 2px 8px rgba(196,124,43,0.15);
-    }
-
-    /* Banner/header personnalisé */
     .banner {
         background: linear-gradient(135deg, #3B2A1A 0%, #7A4F2E 50%, #C47C2B 100%);
-        border-radius: 16px;
-        padding: 28px 20px 22px;
-        text-align: center;
-        margin-bottom: 28px;
-        box-shadow: 0 4px 20px rgba(59,42,26,0.25);
+        border-radius: 16px; padding: 28px 20px 22px; text-align: center;
+        margin-bottom: 28px; box-shadow: 0 4px 20px rgba(59,42,26,0.25);
     }
     .banner h1 {
-        color: #FEF6E8 !important;
-        font-family: 'Cormorant Garamond', serif !important;
-        font-size: 2.8rem !important;
-        font-weight: 600 !important;
-        margin: 0 !important;
-        letter-spacing: 3px;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        color: #FEF6E8 !important; font-family: 'Cormorant Garamond', serif !important;
+        font-size: 2.8rem !important; font-weight: 600 !important; margin: 0 !important;
+        letter-spacing: 3px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     .banner p {
-        color: #E8C99A !important;
-        font-family: 'Lato', sans-serif !important;
-        font-size: 0.85rem !important;
-        margin: 8px 0 0 !important;
-        letter-spacing: 4px;
-        text-transform: uppercase;
+        color: #E8C99A !important; font-family: 'Lato', sans-serif !important;
+        font-size: 0.85rem !important; margin: 8px 0 0 !important;
+        letter-spacing: 4px; text-transform: uppercase;
     }
 
-    /* Séparateur élégant */
     .divider {
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #E8C99A, transparent);
-        margin: 20px 0;
-        border: none;
+        height: 2px; background: linear-gradient(90deg, transparent, #E8C99A, transparent);
+        margin: 20px 0; border: none;
     }
-
-    /* Info box */
     .info-box {
-        background: #FEF6E8;
-        border-left: 4px solid #C47C2B;
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin: 12px 0;
-        font-family: 'Lato', sans-serif;
-        color: #3B2A1A;
-        font-size: 0.9rem;
+        background: #FEF6E8; border-left: 4px solid #C47C2B; border-radius: 8px;
+        padding: 12px 16px; margin: 12px 0; font-family: 'Lato', sans-serif;
+        color: #3B2A1A; font-size: 0.9rem;
     }
 
-    /* Compteur de plats */
-    .counter-badge {
-        background: #C47C2B;
-        color: white;
-        border-radius: 20px;
-        padding: 2px 10px;
-        font-size: 0.85rem;
-        font-weight: 700;
+    /* Catégorie headers */
+    .cat-header-entree {
+        background: linear-gradient(90deg, #2E7D32, #43A047);
+        color: white; border-radius: 10px; padding: 8px 14px;
+        font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
+        font-weight: 700; letter-spacing: 1px; margin: 12px 0 6px 0;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .cat-header-plat {
+        background: linear-gradient(90deg, #E65100, #FB8C00);
+        color: white; border-radius: 10px; padding: 8px 14px;
+        font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
+        font-weight: 700; letter-spacing: 1px; margin: 12px 0 6px 0;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .cat-header-dessert {
+        background: linear-gradient(90deg, #AD1457, #E91E8C);
+        color: white; border-radius: 10px; padding: 8px 14px;
+        font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
+        font-weight: 700; letter-spacing: 1px; margin: 12px 0 6px 0;
+        display: flex; align-items: center; gap: 8px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -232,13 +152,25 @@ def load_menu():
     return None
 
 
+def get_dish_category(df):
+    """Extrait la catégorie depuis la colonne Catégorie du df (nouvelle structure)."""
+    if 'Catégorie' in df.columns:
+        vals = df['Catégorie'].dropna()
+        if not vals.empty:
+            return vals.iloc[0]
+    return 'Plat'
+
+
+def get_ingredients_df(df):
+    """Retourne le df des ingrédients (colonnes Ingrédient, Quantité, Unité)."""
+    cols = [c for c in ['Ingrédient', 'Quantité', 'Unité'] if c in df.columns]
+    return df[cols]
+
+
 def normalize_ingredient(name):
-    """Normalise un nom d'ingrédient pour la déduplication (minuscules, sans accents, sans 's' final)."""
     import unicodedata
     name = str(name).strip().lower()
-    # Suppression des accents
     name = ''.join(c for c in unicodedata.normalize('NFD', name) if unicodedata.category(c) != 'Mn')
-    # Supprime le 's' final pour unifier singulier/pluriel
     if name.endswith('s') and len(name) > 3:
         name = name[:-1]
     return name
@@ -249,7 +181,8 @@ def calculate_groceries(menu_data, selected_dishes, num_guests):
     ratio = num_guests / 4.0
     for dish in selected_dishes:
         df = menu_data[dish]
-        for _, row in df.iterrows():
+        ing_df = get_ingredients_df(df)
+        for _, row in ing_df.iterrows():
             shopping_list.append({
                 "Plat": dish,
                 "Ingrédient": row['Ingrédient'],
@@ -258,44 +191,37 @@ def calculate_groceries(menu_data, selected_dishes, num_guests):
             })
     df_all = pd.DataFrame(shopping_list)
 
-    # --- Déduplication par liste globale (toutes sections confondues) ---
-    # On crée une clé de normalisation
     df_all['_key'] = df_all['Ingrédient'].apply(normalize_ingredient) + '__' + df_all['Unité'].astype(str).str.strip().str.lower()
-
-    # Pour chaque clé, on garde le nom le plus fréquent (ou le premier)
     canonical_names = df_all.groupby('_key')['Ingrédient'].agg(lambda x: x.value_counts().index[0])
     df_all['Ingrédient'] = df_all['_key'].map(canonical_names)
 
-    # Grouper par Plat + clé normalisée pour sommer les quantités dans chaque plat
     df_agg = (
         df_all.groupby(['Plat', '_key'], sort=False)
         .agg(Ingrédient=('Ingrédient', 'first'), Quantité=('Quantité', 'sum'), Unité=('Unité', 'first'))
         .reset_index()
         .drop(columns='_key')
     )
-    # Restaurer l'ordre d'origine des plats
     df_agg['Plat'] = pd.Categorical(df_agg['Plat'], categories=selected_dishes, ordered=True)
     df_agg = df_agg.sort_values('Plat').reset_index(drop=True)
-
     return df_agg
 
 
-def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selected_dishes=None):
-    """Génère un PDF élégant avec ReportLab."""
+def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selected_dishes=None, menu_data=None):
     pdf_filename = f"La_Valise_aux_Epices_{firstname}_{name}.pdf"
 
-    # --- Palette : crème chaud / terracotta / or sable ---
-    ENCRE       = colors.HexColor("#1C1208")   # titres foncés
-    TERRACOTTA  = colors.HexColor("#B85C38")   # accents chauds
-    TERRE       = colors.HexColor("#6B3D2E")   # secondaire
-    OR          = colors.HexColor("#D4973A")   # dorure
-    OR_PALE     = colors.HexColor("#EDD79A")   # fond léger doré
-    SABLE       = colors.HexColor("#F5ECD7")   # fond crème
-    PARCHEMIN   = colors.HexColor("#FBF6EC")   # fond très clair
+    ENCRE       = colors.HexColor("#1C1208")
+    TERRACOTTA  = colors.HexColor("#B85C38")
+    TERRE       = colors.HexColor("#6B3D2E")
+    OR          = colors.HexColor("#D4973A")
+    OR_PALE     = colors.HexColor("#EDD79A")
+    SABLE       = colors.HexColor("#F5ECD7")
+    PARCHEMIN   = colors.HexColor("#FBF6EC")
     BLANC       = colors.white
     GRIS        = colors.HexColor("#888888")
+    VERT        = colors.HexColor("#2E7D32")
+    ROSE        = colors.HexColor("#AD1457")
 
-    W = 17 * cm  # largeur utile
+    W = 17 * cm
 
     doc = SimpleDocTemplate(
         pdf_filename, pagesize=A4,
@@ -304,7 +230,6 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     )
     styles = getSampleStyleSheet()
 
-    # ---- styles réutilisables ----
     def S(name, **kw):
         return ParagraphStyle(name, parent=styles['Normal'], **kw)
 
@@ -317,46 +242,33 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     sQT = S('sQT', fontSize=10, textColor=TERRACOTTA, fontName='Helvetica-Bold',leading=14, alignment=TA_RIGHT)
     sRM = S('sRM', fontSize=8,  textColor=GRIS,       fontName='Helvetica-Oblique', alignment=TA_CENTER, leading=12)
     sSH = S('sSH', fontSize=11, textColor=BLANC,      fontName='Times-Bold',    leading=15, alignment=TA_CENTER)
+    sCAT= S('sCAT',fontSize=10, textColor=BLANC,      fontName='Helvetica-Bold',leading=14, alignment=TA_CENTER)
 
     elements = []
 
-    # ══════════════════════════════════════════
     # HEADER
-    # ══════════════════════════════════════════
-    # Ligne décorative dorée très fine
     elements.append(Table([[""]], colWidths=[W], rowHeights=[3],
         style=TableStyle([('BACKGROUND',(0,0),(-1,-1), OR)])))
-
-    # Titre principal sur fond encre
     elements.append(Table(
-        [[Paragraph("La Valise aux Epices", sT)]],
-        colWidths=[W],
+        [[Paragraph("La Valise aux Epices", sT)]], colWidths=[W],
         style=TableStyle([
             ('BACKGROUND',(0,0),(-1,-1), ENCRE),
-            ('TOPPADDING',(0,0),(-1,-1), 22),
-            ('BOTTOMPADDING',(0,0),(-1,-1), 16),
-            ('LEFTPADDING',(0,0),(-1,-1), 10),
-            ('RIGHTPADDING',(0,0),(-1,-1), 10),
+            ('TOPPADDING',(0,0),(-1,-1), 22), ('BOTTOMPADDING',(0,0),(-1,-1), 16),
+            ('LEFTPADDING',(0,0),(-1,-1), 10), ('RIGHTPADDING',(0,0),(-1,-1), 10),
         ])
     ))
-    # Bandeau sous-titre terracotta
     elements.append(Table(
-        [[Paragraph("LISTE DE COURSES", sST)]],
-        colWidths=[W],
+        [[Paragraph("LISTE DE COURSES", sST)]], colWidths=[W],
         style=TableStyle([
             ('BACKGROUND',(0,0),(-1,-1), TERRACOTTA),
-            ('TOPPADDING',(0,0),(-1,-1), 6),
-            ('BOTTOMPADDING',(0,0),(-1,-1), 6),
+            ('TOPPADDING',(0,0),(-1,-1), 6), ('BOTTOMPADDING',(0,0),(-1,-1), 6),
         ])
     ))
-    # Ligne dorée fine
     elements.append(Table([[""]], colWidths=[W], rowHeights=[3],
         style=TableStyle([('BACKGROUND',(0,0),(-1,-1), OR)])))
     elements.append(Spacer(1, 0.5*cm))
 
-    # ══════════════════════════════════════════
     # FICHE CLIENT
-    # ══════════════════════════════════════════
     col1 = 10.5*cm; col2 = 6.5*cm
     client_rows = [
         [Paragraph("CLIENT", sCL),        Paragraph("COUVERTS", sCL)],
@@ -380,9 +292,13 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     elements.append(ct)
     elements.append(Spacer(1, 0.35*cm))
 
-    # Bandeau plats choisis
-    if selected_dishes:
-        plats_text = "  ·  ".join(selected_dishes)
+    # Bandeau plats choisis avec catégories
+    if selected_dishes and menu_data:
+        cat_icons = {'Entrée': '🥗', 'Plat': '🍽️', 'Dessert': '🍰'}
+        plats_text = "  ·  ".join(
+            f"{cat_icons.get(get_dish_category(menu_data[d]), '🍽️')} {d}"
+            for d in selected_dishes
+        )
         elements.append(Table(
             [[Paragraph(plats_text, S('sP', fontSize=8, textColor=TERRE,
                 fontName='Helvetica-Oblique', alignment=TA_CENTER, leading=12))]],
@@ -397,13 +313,9 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
 
     elements.append(Spacer(1, 0.5*cm))
 
-    # ══════════════════════════════════════════
-    # SECTION 1 — PAR PLAT
-    # ══════════════════════════════════════════
-    # Titre de section
+    # SECTION PAR PLAT (groupé par catégorie)
     elements.append(Table(
-        [[Paragraph("PAR PLAT", sSH)]],
-        colWidths=[W],
+        [[Paragraph("PAR PLAT", sSH)]], colWidths=[W],
         style=TableStyle([
             ('BACKGROUND',(0,0),(-1,-1), TERRE),
             ('TOPPADDING',(0,0),(-1,-1), 7), ('BOTTOMPADDING',(0,0),(-1,-1), 7),
@@ -412,54 +324,82 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     ))
     elements.append(Spacer(1, 0.3*cm))
 
+    CAT_COLORS = {
+        'Entrée':  colors.HexColor("#2E7D32"),
+        'Plat':    TERRACOTTA,
+        'Dessert': colors.HexColor("#AD1457"),
+    }
+    CAT_ORDER = ['Entrée', 'Plat', 'Dessert']
     ACCENTS = [TERRACOTTA, TERRE, colors.HexColor("#8B4513"), colors.HexColor("#A0522D"), colors.HexColor("#CD853F")]
 
-    for i, (plat, group) in enumerate(shopping_df.groupby("Plat", sort=False)):
-        accent = ACCENTS[i % len(ACCENTS)]
-        pe = []
+    # Grouper les plats sélectionnés par catégorie
+    dishes_by_cat = {'Entrée': [], 'Plat': [], 'Dessert': []}
+    for d in (selected_dishes or []):
+        cat = get_dish_category(menu_data[d]) if menu_data else 'Plat'
+        dishes_by_cat.setdefault(cat, []).append(d)
 
-        # Titre du plat : pastille colorée + nom
-        pe.append(Table(
-            [[Paragraph(f"  {plat}", sPT)]],
-            colWidths=[W],
+    dish_counter = 0
+    for cat in CAT_ORDER:
+        dishes = dishes_by_cat.get(cat, [])
+        if not dishes:
+            continue
+
+        cat_color = CAT_COLORS.get(cat, TERRE)
+        cat_labels = {'Entrée': '🥗  ENTREES', 'Plat': '🍽️  PLATS', 'Dessert': '🍰  DESSERTS'}
+
+        # Bandeau de catégorie
+        elements.append(Spacer(1, 0.2*cm))
+        elements.append(Table(
+            [[Paragraph(cat_labels.get(cat, cat), sCAT)]], colWidths=[W],
             style=TableStyle([
-                ('BACKGROUND',(0,0),(-1,-1), accent),
-                ('TOPPADDING',(0,0),(-1,-1), 7), ('BOTTOMPADDING',(0,0),(-1,-1), 7),
-                ('LEFTPADDING',(0,0),(-1,-1), 10),
-                ('LINEBELOW',(0,0),(-1,0), 1.5, OR),
+                ('BACKGROUND',(0,0),(-1,-1), cat_color),
+                ('TOPPADDING',(0,0),(-1,-1), 5), ('BOTTOMPADDING',(0,0),(-1,-1), 5),
+                ('LINEABOVE',(0,0),(-1,0), 1.5, OR_PALE), ('LINEBELOW',(0,0),(-1,0), 1.5, OR_PALE),
             ])
         ))
+        elements.append(Spacer(1, 0.15*cm))
 
-        # Ingrédients : zébrage sable/blanc
-        ing_data = []
-        for _, row in group.iterrows():
-            qty = row['Quantité']
-            qty_str = str(int(qty)) if qty == int(qty) else f"{qty:.1f}"
-            ing_data.append([
-                Paragraph(f"  {row['Ingrédient']}", sIL),
-                Paragraph(f"{qty_str} {row['Unité']}", sQT),
-            ])
+        for plat in dishes:
+            group = shopping_df[shopping_df['Plat'] == plat]
+            accent = ACCENTS[dish_counter % len(ACCENTS)]
+            dish_counter += 1
+            pe = []
 
-        t = Table(ing_data, colWidths=[12.5*cm, 4.5*cm])
-        t.setStyle(TableStyle([
-            ('ROWBACKGROUNDS',(0,0),(-1,-1), [BLANC, SABLE]),
-            ('TOPPADDING',(0,0),(-1,-1), 5), ('BOTTOMPADDING',(0,0),(-1,-1), 5),
-            ('LEFTPADDING',(0,0),(-1,-1), 10), ('RIGHTPADDING',(0,0),(-1,-1), 8),
-            ('LINEBELOW',(0,-1),(-1,-1), 0.5, OR_PALE),
-            # Ligne colorée à gauche de chaque ligne impaire
-            ('LINEBEFORE',(0,0),(0,-1), 2, accent),
-        ]))
-        pe.append(t)
-        pe.append(Spacer(1, 0.25*cm))
-        elements.append(KeepTogether(pe))
+            pe.append(Table(
+                [[Paragraph(f"  {plat}", sPT)]], colWidths=[W],
+                style=TableStyle([
+                    ('BACKGROUND',(0,0),(-1,-1), accent),
+                    ('TOPPADDING',(0,0),(-1,-1), 7), ('BOTTOMPADDING',(0,0),(-1,-1), 7),
+                    ('LEFTPADDING',(0,0),(-1,-1), 10),
+                    ('LINEBELOW',(0,0),(-1,0), 1.5, OR),
+                ])
+            ))
 
-    # ══════════════════════════════════════════
-    # SECTION 2 — LISTE GLOBALE CONSOLIDÉE
-    # ══════════════════════════════════════════
+            ing_data = []
+            for _, row in group.iterrows():
+                qty = row['Quantité']
+                qty_str = str(int(qty)) if qty == int(qty) else f"{qty:.1f}"
+                ing_data.append([
+                    Paragraph(f"  {row['Ingrédient']}", sIL),
+                    Paragraph(f"{qty_str} {row['Unité']}", sQT),
+                ])
+
+            t = Table(ing_data, colWidths=[12.5*cm, 4.5*cm])
+            t.setStyle(TableStyle([
+                ('ROWBACKGROUNDS',(0,0),(-1,-1), [BLANC, SABLE]),
+                ('TOPPADDING',(0,0),(-1,-1), 5), ('BOTTOMPADDING',(0,0),(-1,-1), 5),
+                ('LEFTPADDING',(0,0),(-1,-1), 10), ('RIGHTPADDING',(0,0),(-1,-1), 8),
+                ('LINEBELOW',(0,-1),(-1,-1), 0.5, OR_PALE),
+                ('LINEBEFORE',(0,0),(0,-1), 2, accent),
+            ]))
+            pe.append(t)
+            pe.append(Spacer(1, 0.25*cm))
+            elements.append(KeepTogether(pe))
+
+    # RÉCAPITULATIF GLOBAL
     elements.append(Spacer(1, 0.4*cm))
     elements.append(Table(
-        [[Paragraph("RECAPITULATIF GLOBAL", sSH)]],
-        colWidths=[W],
+        [[Paragraph("RECAPITULATIF GLOBAL", sSH)]], colWidths=[W],
         style=TableStyle([
             ('BACKGROUND',(0,0),(-1,-1), ENCRE),
             ('TOPPADDING',(0,0),(-1,-1), 7), ('BOTTOMPADDING',(0,0),(-1,-1), 7),
@@ -468,7 +408,6 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     ))
     elements.append(Spacer(1, 0.3*cm))
 
-    # Consolidation globale (somme toutes unités identiques)
     global_df = (
         shopping_df.groupby(['Ingrédient', 'Unité'], sort=True)
         .agg(Quantité=('Quantité', 'sum'))
@@ -476,7 +415,6 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
         .sort_values('Ingrédient')
     )
 
-    # Affichage en 2 colonnes côte à côte
     global_rows = list(global_df.iterrows())
     mid = (len(global_rows) + 1) // 2
     left  = global_rows[:mid]
@@ -484,9 +422,9 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     while len(right) < len(left):
         right.append((None, None))
 
-    sGL = S('sGL', fontSize=9,  textColor=ENCRE,      fontName='Times-Roman', leading=13)
-    sGQ = S('sGQ', fontSize=9,  textColor=TERRACOTTA, fontName='Helvetica-Bold', leading=13, alignment=TA_RIGHT)
-    sGE = S('sGE', fontSize=9,  textColor=BLANC,      fontName='Times-Roman', leading=13)
+    sGL = S('sGL', fontSize=9, textColor=ENCRE,      fontName='Times-Roman', leading=13)
+    sGQ = S('sGQ', fontSize=9, textColor=TERRACOTTA, fontName='Helvetica-Bold', leading=13, alignment=TA_RIGHT)
+    sGE = S('sGE', fontSize=9, textColor=BLANC,      fontName='Times-Roman', leading=13)
 
     global_table_data = []
     for (_, lrow), (_, rrow) in zip(left, right):
@@ -511,22 +449,19 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
         ('ROWBACKGROUNDS',(0,0),(-1,-1), [PARCHEMIN, SABLE]),
         ('TOPPADDING',(0,0),(-1,-1), 5), ('BOTTOMPADDING',(0,0),(-1,-1), 5),
         ('LEFTPADDING',(0,0),(-1,-1), 6), ('RIGHTPADDING',(0,0),(-1,-1), 4),
-        ('LINEAFTER',(1,0),(1,-1), 0.5, OR_PALE),   # séparateur centre
+        ('LINEAFTER',(1,0),(1,-1), 0.5, OR_PALE),
         ('LINEAFTER',(2,0),(2,-1), 0.5, OR_PALE),
         ('BOX',(0,0),(-1,-1), 0.5, OR_PALE),
     ]))
     elements.append(gt)
 
-    # ══════════════════════════════════════════
     # PIED DE PAGE
-    # ══════════════════════════════════════════
     elements.append(Spacer(1, 0.6*cm))
     elements.append(Table([[""]], colWidths=[W], rowHeights=[1.5],
         style=TableStyle([('BACKGROUND',(0,0),(-1,-1), OR)])))
     elements.append(Spacer(1, 0.2*cm))
     elements.append(Paragraph(
-        "La Valise aux Epices  —  Cuisine faite maison, livree avec amour",
-        sRM
+        "La Valise aux Epices  —  Cuisine faite maison, livree avec amour", sRM
     ))
 
     doc.build(elements)
@@ -570,7 +505,6 @@ La liste de courses est en pièce jointe.
 # INTERFACE PRINCIPALE
 # =====================================================================
 
-# Bannière
 st.markdown("""
 <div class="banner">
     <h1>🥘 La Valise aux Épices</h1>
@@ -587,11 +521,18 @@ if menu_data is None:
     </div>
     """, unsafe_allow_html=True)
 else:
-    available_dishes = list(menu_data.keys())
+    # Organiser les plats par catégorie
+    dishes_by_category = {'Entrée': [], 'Plat': [], 'Dessert': []}
+    for dish_name, df in menu_data.items():
+        cat = get_dish_category(df)
+        dishes_by_category.setdefault(cat, []).append(dish_name)
+
+    CAT_ICONS = {'Entrée': '🥗', 'Plat': '🍽️', 'Dessert': '🍰'}
+    CAT_ORDER = ['Entrée', 'Plat', 'Dessert']
 
     with st.form("client_form"):
 
-        # --- Section 1 : Infos client ---
+        # Section 1 : Infos client
         st.markdown("### 👤 Vos informations")
         col1, col2 = st.columns(2)
         with col1:
@@ -603,7 +544,7 @@ else:
 
         st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
 
-        # --- Section 2 : Repas ---
+        # Section 2 : Repas
         st.markdown("### 🍽️ Votre Repas")
         num_guests = st.selectbox(
             "Pour combien de personnes ?",
@@ -618,17 +559,26 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-        # Affichage des plats en 3 colonnes
-        cols = st.columns(3)
+        # Affichage par catégorie
         selected_dishes = []
-        for index, dish in enumerate(available_dishes):
-            with cols[index % 3]:
-                if st.checkbox(dish, key=f"dish_{index}"):
-                    selected_dishes.append(dish)
+        for cat in CAT_ORDER:
+            dishes = dishes_by_category.get(cat, [])
+            if not dishes:
+                continue
+
+            icon = CAT_ICONS[cat]
+            css_class = f"cat-header-{cat.lower()}"
+            st.markdown(f'<div class="{css_class}">{icon} &nbsp; {cat.upper()}S</div>', unsafe_allow_html=True)
+
+            cols = st.columns(3)
+            for index, dish in enumerate(dishes):
+                with cols[index % 3]:
+                    if st.checkbox(dish, key=f"dish_{dish}"):
+                        selected_dishes.append(dish)
 
         st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
 
-        # --- Section 3 : Les courses ---
+        # Section 3 : Courses
         st.markdown("### 🛒 Gestion des courses")
         course_option = st.radio(
             "Comment souhaitez-vous gérer les courses ?",
@@ -639,7 +589,7 @@ else:
         st.markdown("<br>", unsafe_allow_html=True)
         submitted = st.form_submit_button("✅ Valider ma commande")
 
-    # --- VÉRIFICATIONS ---
+    # VÉRIFICATIONS
     if submitted:
         if not selected_dishes:
             st.error("⚠️ Veuillez sélectionner au moins un plat.")
@@ -652,14 +602,12 @@ else:
                 shopping_df = calculate_groceries(menu_data, selected_dishes, num_guests)
                 valou_fait_courses = course_option == "Valou fait les courses (+15€)"
 
-                # Le PDF inclut l'adresse seulement si Valou fait les courses
                 pdf_path = generate_pdf(
-                    shopping_df,
-                    name,
-                    firstname,
+                    shopping_df, name, firstname,
                     address=address if valou_fait_courses else None,
                     num_guests=num_guests,
                     selected_dishes=selected_dishes,
+                    menu_data=menu_data,
                 )
 
             if not valou_fait_courses:
