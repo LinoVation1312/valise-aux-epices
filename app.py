@@ -228,8 +228,20 @@ st.markdown("""
 # --- FONCTIONS UTILITAIRES ---
 def load_menu():
     if os.path.exists(EXCEL_FILE_PATH):
-        return pd.read_excel(EXCEL_FILE_PATH, sheet_name=None)
+        all_sheets = pd.read_excel(EXCEL_FILE_PATH, sheet_name=None)
+        return {k: v for k, v in all_sheets.items() if k != 'Catégories'}
     return None
+
+
+def load_categories():
+    """Charge le mapping plat → catégorie depuis la feuille 'Catégories' du fichier Excel."""
+    if os.path.exists(EXCEL_FILE_PATH):
+        try:
+            df = pd.read_excel(EXCEL_FILE_PATH, sheet_name='Catégories')
+            return dict(zip(df['Plat'], df['Catégorie']))
+        except (ValueError, KeyError):
+            return {}
+    return {}
 
 
 def normalize_ingredient(name):
@@ -280,7 +292,7 @@ def calculate_groceries(menu_data, selected_dishes, num_guests):
     return df_agg
 
 
-def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selected_dishes=None):
+def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selected_dishes=None, categories_map=None):
     """Génère un PDF élégant avec ReportLab."""
     pdf_filename = f"La_Valise_aux_Epices_{firstname}_{name}.pdf"
 
@@ -414,44 +426,82 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
 
     ACCENTS = [TERRACOTTA, TERRE, colors.HexColor("#8B4513"), colors.HexColor("#A0522D"), colors.HexColor("#CD853F")]
 
-    for i, (plat, group) in enumerate(shopping_df.groupby("Plat", sort=False)):
-        accent = ACCENTS[i % len(ACCENTS)]
-        pe = []
+    COURSE_ORDER_PDF = ['Entrée', 'Plat', 'Dessert']
+    COURSE_ICONS_PDF = {'Entrée': 'ENTRÉES', 'Plat': 'PLATS', 'Dessert': 'DESSERTS'}
 
-        # Titre du plat : pastille colorée + nom
-        pe.append(Table(
-            [[Paragraph(f"  {plat}", sPT)]],
+    # Regrouper les plats par catégorie en préservant l'ordre des plats sélectionnés
+    if categories_map:
+        dishes_by_cat = {}
+        for dish in (selected_dishes or shopping_df['Plat'].unique()):
+            cat = categories_map.get(dish, 'Plat')
+            dishes_by_cat.setdefault(cat, []).append(dish)
+    else:
+        dishes_by_cat = {'Plat': list(shopping_df['Plat'].unique())}
+
+    sSC = S('sSC', fontSize=9, textColor=OR_PALE, fontName='Helvetica-Bold',
+            leading=12, alignment=TA_CENTER, charSpace=2)
+
+    accent_counter = 0
+    for category in COURSE_ORDER_PDF:
+        cat_dishes = dishes_by_cat.get(category, [])
+        if not cat_dishes:
+            continue
+
+        # Sous-titre de catégorie (Entrées / Plats / Desserts)
+        elements.append(Table(
+            [[Paragraph(COURSE_ICONS_PDF[category], sSC)]],
             colWidths=[W],
             style=TableStyle([
-                ('BACKGROUND',(0,0),(-1,-1), accent),
-                ('TOPPADDING',(0,0),(-1,-1), 7), ('BOTTOMPADDING',(0,0),(-1,-1), 7),
-                ('LEFTPADDING',(0,0),(-1,-1), 10),
-                ('LINEBELOW',(0,0),(-1,0), 1.5, OR),
+                ('BACKGROUND', (0, 0), (-1, -1), TERRE),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                ('LINEABOVE', (0, 0), (-1, 0), 1, OR),
             ])
         ))
+        elements.append(Spacer(1, 0.2*cm))
 
-        # Ingrédients : zébrage sable/blanc
-        ing_data = []
-        for _, row in group.iterrows():
-            qty = row['Quantité']
-            qty_str = str(int(qty)) if qty == int(qty) else f"{qty:.1f}"
-            ing_data.append([
-                Paragraph(f"  {row['Ingrédient']}", sIL),
-                Paragraph(f"{qty_str} {row['Unité']}", sQT),
-            ])
+        for plat in cat_dishes:
+            group = shopping_df[shopping_df['Plat'] == plat]
+            if group.empty:
+                continue
+            accent = ACCENTS[accent_counter % len(ACCENTS)]
+            accent_counter += 1
+            pe = []
 
-        t = Table(ing_data, colWidths=[12.5*cm, 4.5*cm])
-        t.setStyle(TableStyle([
-            ('ROWBACKGROUNDS',(0,0),(-1,-1), [BLANC, SABLE]),
-            ('TOPPADDING',(0,0),(-1,-1), 5), ('BOTTOMPADDING',(0,0),(-1,-1), 5),
-            ('LEFTPADDING',(0,0),(-1,-1), 10), ('RIGHTPADDING',(0,0),(-1,-1), 8),
-            ('LINEBELOW',(0,-1),(-1,-1), 0.5, OR_PALE),
-            # Ligne colorée à gauche de chaque ligne impaire
-            ('LINEBEFORE',(0,0),(0,-1), 2, accent),
-        ]))
-        pe.append(t)
-        pe.append(Spacer(1, 0.25*cm))
-        elements.append(KeepTogether(pe))
+            # Titre du plat : pastille colorée + nom
+            pe.append(Table(
+                [[Paragraph(f"  {plat}", sPT)]],
+                colWidths=[W],
+                style=TableStyle([
+                    ('BACKGROUND',(0,0),(-1,-1), accent),
+                    ('TOPPADDING',(0,0),(-1,-1), 7), ('BOTTOMPADDING',(0,0),(-1,-1), 7),
+                    ('LEFTPADDING',(0,0),(-1,-1), 10),
+                    ('LINEBELOW',(0,0),(-1,0), 1.5, OR),
+                ])
+            ))
+
+            # Ingrédients : zébrage sable/blanc
+            ing_data = []
+            for _, row in group.iterrows():
+                qty = row['Quantité']
+                qty_str = str(int(qty)) if qty == int(qty) else f"{qty:.1f}"
+                ing_data.append([
+                    Paragraph(f"  {row['Ingrédient']}", sIL),
+                    Paragraph(f"{qty_str} {row['Unité']}", sQT),
+                ])
+
+            t = Table(ing_data, colWidths=[12.5*cm, 4.5*cm])
+            t.setStyle(TableStyle([
+                ('ROWBACKGROUNDS',(0,0),(-1,-1), [BLANC, SABLE]),
+                ('TOPPADDING',(0,0),(-1,-1), 5), ('BOTTOMPADDING',(0,0),(-1,-1), 5),
+                ('LEFTPADDING',(0,0),(-1,-1), 10), ('RIGHTPADDING',(0,0),(-1,-1), 8),
+                ('LINEBELOW',(0,-1),(-1,-1), 0.5, OR_PALE),
+                # Ligne colorée à gauche de chaque ligne impaire
+                ('LINEBEFORE',(0,0),(0,-1), 2, accent),
+            ]))
+            pe.append(t)
+            pe.append(Spacer(1, 0.25*cm))
+            elements.append(KeepTogether(pe))
 
     # ══════════════════════════════════════════
     # SECTION 2 — LISTE GLOBALE CONSOLIDÉE
@@ -588,6 +638,17 @@ if menu_data is None:
     """, unsafe_allow_html=True)
 else:
     available_dishes = list(menu_data.keys())
+    categories_data = load_categories()
+
+    COURSE_ORDER = ['Entrée', 'Plat', 'Dessert']
+    COURSE_ICONS = {'Entrée': '🥗', 'Plat': '🍽️', 'Dessert': '🍮'}
+    COURSE_LABELS = {'Entrée': 'Entrées', 'Plat': 'Plats', 'Dessert': 'Desserts'}
+
+    # Grouper les plats par catégorie en préservant l'ordre du menu
+    dishes_by_category = {}
+    for dish in available_dishes:
+        cat = categories_data.get(dish, 'Plat')
+        dishes_by_category.setdefault(cat, []).append(dish)
 
     with st.form("client_form"):
 
@@ -618,13 +679,19 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-        # Affichage des plats en 3 colonnes
-        cols = st.columns(3)
+        # Affichage des plats par section (Entrée / Plat / Dessert)
         selected_dishes = []
-        for index, dish in enumerate(available_dishes):
-            with cols[index % 3]:
-                if st.checkbox(dish, key=f"dish_{index}"):
-                    selected_dishes.append(dish)
+        for category in COURSE_ORDER:
+            category_dishes = dishes_by_category.get(category, [])
+            if category_dishes:
+                icon = COURSE_ICONS.get(category, '🍽️')
+                label = COURSE_LABELS.get(category, category)
+                st.markdown(f"**{icon} {label}**")
+                cols = st.columns(3)
+                for i, dish in enumerate(category_dishes):
+                    with cols[i % 3]:
+                        if st.checkbox(dish, key=f"dish_{category}_{dish}"):
+                            selected_dishes.append(dish)
 
         st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
 
@@ -660,6 +727,7 @@ else:
                     address=address if valou_fait_courses else None,
                     num_guests=num_guests,
                     selected_dishes=selected_dishes,
+                    categories_map=categories_data,
                 )
 
             if not valou_fait_courses:
