@@ -42,20 +42,29 @@ def generate_pdf(shopping_df, name, firstname):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', 20)
-    pdf.cell(200, 10, txt="La Valise aux Épices", ln=True, align='C')
+    # On retire l'accent sur le E majuscule pour éviter tout bug fpdf
+    pdf.cell(200, 10, txt="La Valise aux Epices", ln=True, align='C')
     
     pdf.set_font("Arial", 'I', 12)
-    pdf.cell(200, 10, txt=f"Liste de courses pour {firstname} {name}", ln=True, align='C')
+    # On s'assure que les prénoms/noms avec caractères spéciaux passent bien
+    titre = f"Liste de courses pour {firstname} {name}"
+    titre = titre.encode('latin-1', 'replace').decode('latin-1')
+    pdf.cell(200, 10, txt=titre, ln=True, align='C')
     pdf.ln(10)
     
     pdf.set_font("Arial", size=11)
     for plat, group in shopping_df.groupby("Plat"):
         pdf.set_font("Arial", 'B', 14)
-        pdf.cell(200, 10, txt=f"🍽️ {plat}", ln=True)
+        # 💥 ON A RETIRÉ L'ÉMOJI ICI
+        plat_clean = plat.encode('latin-1', 'replace').decode('latin-1')
+        pdf.cell(200, 10, txt=f"-- {plat_clean} --", ln=True)
+        
         pdf.set_font("Arial", size=11)
         for _, row in group.iterrows():
             texte = f"- {row['Ingrédient']} : {round(row['Quantité'], 2)} {row['Unité']}"
-            pdf.cell(200, 8, txt=texte, ln=True)
+            # On force la conversion en latin-1 pour éviter que le PDF ne crashe sur un ingrédient complexe
+            texte_clean = texte.encode('latin-1', 'replace').decode('latin-1')
+            pdf.cell(200, 8, txt=texte_clean, ln=True)
         pdf.ln(5)
         
     pdf_filename = f"Liste_Courses_{firstname}_{name}.pdf"
