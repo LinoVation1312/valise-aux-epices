@@ -79,7 +79,6 @@ Plats choisis: {', '.join(selected_dishes)}
 
 La liste de courses est en pièce jointe.
     """
-    # L'encodage utf-8 permet d'éviter les bugs avec les accents
     msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
     # Attacher le PDF
@@ -124,11 +123,18 @@ else:
         st.subheader("Votre Repas")
         num_guests = st.selectbox("Pour combien de personnes ?", options=list(range(1, 21)), index=3) # Par défaut 4
         
-        selected_dishes = st.multiselect(
-            "Choisissez vos plats (jusqu'à 5)", 
-            options=available_dishes,
-            max_selections=5
-        )
+        st.write("**Choisissez vos plats (jusqu'à 5) :**")
+        
+        # Affichage des plats sur 3 colonnes avec des cases à cocher
+        cols = st.columns(3)
+        selected_dishes = []
+        
+        for index, dish in enumerate(available_dishes):
+            # On répartit les plats dans les colonnes (0, 1, 2, 0, 1, 2...)
+            with cols[index % 3]:
+                # Si la case est cochée, on ajoute le plat à la liste
+                if st.checkbox(dish, key=f"dish_{index}"):
+                    selected_dishes.append(dish)
         
         st.subheader("Les Courses")
         course_option = st.radio(
@@ -138,9 +144,13 @@ else:
         
         submitted = st.form_submit_button("Valider la commande")
         
+    # --- VÉRIFICATIONS APRÈS SOUMISSION ---
     if submitted:
         if not selected_dishes:
             st.error("Veuillez sélectionner au moins un plat.")
+        elif len(selected_dishes) > 5:
+            # On bloque si le client a coché plus de 5 cases
+            st.error(f"Vous avez sélectionné {len(selected_dishes)} plats. Veuillez n'en choisir que 5 maximum.")
         elif not name or not firstname or not address:
             st.error("Veuillez remplir toutes vos informations (Nom, Prénom, Adresse).")
         else:
