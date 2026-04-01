@@ -284,252 +284,249 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     """Génère un PDF élégant avec ReportLab."""
     pdf_filename = f"La_Valise_aux_Epices_{firstname}_{name}.pdf"
 
-    # Couleurs
-    MARRON_FONCE = colors.HexColor("#3B2A1A")
-    MARRON_MOYEN = colors.HexColor("#7A4F2E")
-    OR = colors.HexColor("#C47C2B")
-    OR_CLAIR = colors.HexColor("#E8C99A")
-    CREME = colors.HexColor("#FEF6E8")
-    BLANC = colors.white
+    # --- Palette : crème chaud / terracotta / or sable ---
+    ENCRE       = colors.HexColor("#1C1208")   # titres foncés
+    TERRACOTTA  = colors.HexColor("#B85C38")   # accents chauds
+    TERRE       = colors.HexColor("#6B3D2E")   # secondaire
+    OR          = colors.HexColor("#D4973A")   # dorure
+    OR_PALE     = colors.HexColor("#EDD79A")   # fond léger doré
+    SABLE       = colors.HexColor("#F5ECD7")   # fond crème
+    PARCHEMIN   = colors.HexColor("#FBF6EC")   # fond très clair
+    BLANC       = colors.white
+    GRIS        = colors.HexColor("#888888")
+
+    W = 17 * cm  # largeur utile
 
     doc = SimpleDocTemplate(
-        pdf_filename,
-        pagesize=A4,
-        topMargin=1.5*cm,
-        bottomMargin=2*cm,
-        leftMargin=2*cm,
-        rightMargin=2*cm
+        pdf_filename, pagesize=A4,
+        topMargin=1.8*cm, bottomMargin=2*cm,
+        leftMargin=2*cm, rightMargin=2*cm
     )
-
     styles = getSampleStyleSheet()
 
-    # Styles personnalisés
-    style_titre = ParagraphStyle(
-        'Titre',
-        parent=styles['Normal'],
-        fontSize=22,
-        textColor=BLANC,
-        alignment=TA_CENTER,
-        fontName='Times-Bold',
-        spaceAfter=0,
-        leading=28,
-    )
-    style_sous_titre = ParagraphStyle(
-        'SousTitre',
-        parent=styles['Normal'],
-        fontSize=9,
-        textColor=OR_CLAIR,
-        alignment=TA_CENTER,
-        fontName='Helvetica',
-        spaceAfter=0,
-        leading=14,
-    )
-    style_client_label = ParagraphStyle(
-        'ClientLabel',
-        parent=styles['Normal'],
-        fontSize=9,
-        textColor=OR,
-        fontName='Helvetica-Bold',
-        spaceAfter=1,
-    )
-    style_client_value = ParagraphStyle(
-        'ClientValue',
-        parent=styles['Normal'],
-        fontSize=11,
-        textColor=MARRON_FONCE,
-        fontName='Helvetica',
-        spaceAfter=0,
-    )
-    style_plat_titre = ParagraphStyle(
-        'PlatTitre',
-        parent=styles['Normal'],
-        fontSize=13,
-        textColor=MARRON_FONCE,
-        fontName='Helvetica-Bold',
-        spaceBefore=4,
-        spaceAfter=4,
-    )
-    style_ingredient = ParagraphStyle(
-        'Ingredient',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=MARRON_MOYEN,
-        fontName='Helvetica',
-        spaceAfter=1,
-        leftIndent=8,
-    )
-    style_note = ParagraphStyle(
-        'Note',
-        parent=styles['Normal'],
-        fontSize=8,
-        textColor=colors.HexColor("#999999"),
-        fontName='Helvetica-Oblique',
-        alignment=TA_CENTER,
-        spaceBefore=8,
-    )
+    # ---- styles réutilisables ----
+    def S(name, **kw):
+        return ParagraphStyle(name, parent=styles['Normal'], **kw)
+
+    sT  = S('sT',  fontSize=26, textColor=BLANC,      fontName='Times-Bold',    alignment=TA_CENTER, leading=32)
+    sST = S('sST', fontSize=8,  textColor=OR_PALE,    fontName='Helvetica',     alignment=TA_CENTER, leading=13, charSpace=2)
+    sCL = S('sCL', fontSize=8,  textColor=TERRACOTTA, fontName='Helvetica-Bold',leading=11)
+    sCV = S('sCV', fontSize=11, textColor=ENCRE,      fontName='Times-Roman',   leading=15)
+    sPT = S('sPT', fontSize=12, textColor=BLANC,      fontName='Times-Bold',    leading=16)
+    sIL = S('sIL', fontSize=10, textColor=ENCRE,      fontName='Times-Roman',   leading=14)
+    sQT = S('sQT', fontSize=10, textColor=TERRACOTTA, fontName='Helvetica-Bold',leading=14, alignment=TA_RIGHT)
+    sRM = S('sRM', fontSize=8,  textColor=GRIS,       fontName='Helvetica-Oblique', alignment=TA_CENTER, leading=12)
+    sSH = S('sSH', fontSize=11, textColor=BLANC,      fontName='Times-Bold',    leading=15, alignment=TA_CENTER)
 
     elements = []
 
-    # --- HEADER BANNIÈRE ---
-    header_data = [[Paragraph("La Valise aux Epices", style_titre)]]
-    header_table = Table(header_data, colWidths=[17*cm])
-    header_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), MARRON_FONCE),
-        ('TOPPADDING', (0,0), (-1,-1), 20),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 14),
-        ('LEFTPADDING', (0,0), (-1,-1), 20),
-        ('RIGHTPADDING', (0,0), (-1,-1), 20),
-    ]))
-    elements.append(header_table)
+    # ══════════════════════════════════════════
+    # HEADER
+    # ══════════════════════════════════════════
+    # Ligne décorative dorée très fine
+    elements.append(Table([[""]], colWidths=[W], rowHeights=[3],
+        style=TableStyle([('BACKGROUND',(0,0),(-1,-1), OR)])))
 
-    # Bande dorée sous le titre
-    gold_bar_data = [[Paragraph("", style_sous_titre)]]
-    gold_bar = Table([[""]], colWidths=[17*cm], rowHeights=[4])
-    gold_bar.setStyle(TableStyle([('BACKGROUND', (0,0), (-1,-1), OR)]))
-    elements.append(gold_bar)
-
-    # Sous-titre sous le header
-    sub_data = [[Paragraph("VOTRE LISTE DE COURSES", style_sous_titre)]]
-    sub_table = Table(sub_data, colWidths=[17*cm])
-    sub_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), MARRON_MOYEN),
-        ('TOPPADDING', (0,0), (-1,-1), 8),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
-    ]))
-    elements.append(sub_table)
+    # Titre principal sur fond encre
+    elements.append(Table(
+        [[Paragraph("La Valise aux Epices", sT)]],
+        colWidths=[W],
+        style=TableStyle([
+            ('BACKGROUND',(0,0),(-1,-1), ENCRE),
+            ('TOPPADDING',(0,0),(-1,-1), 22),
+            ('BOTTOMPADDING',(0,0),(-1,-1), 16),
+            ('LEFTPADDING',(0,0),(-1,-1), 10),
+            ('RIGHTPADDING',(0,0),(-1,-1), 10),
+        ])
+    ))
+    # Bandeau sous-titre terracotta
+    elements.append(Table(
+        [[Paragraph("LISTE DE COURSES", sST)]],
+        colWidths=[W],
+        style=TableStyle([
+            ('BACKGROUND',(0,0),(-1,-1), TERRACOTTA),
+            ('TOPPADDING',(0,0),(-1,-1), 6),
+            ('BOTTOMPADDING',(0,0),(-1,-1), 6),
+        ])
+    ))
+    # Ligne dorée fine
+    elements.append(Table([[""]], colWidths=[W], rowHeights=[3],
+        style=TableStyle([('BACKGROUND',(0,0),(-1,-1), OR)])))
     elements.append(Spacer(1, 0.5*cm))
 
-    # --- FICHE CLIENT ---
-    # Construction des données client
+    # ══════════════════════════════════════════
+    # FICHE CLIENT
+    # ══════════════════════════════════════════
+    col1 = 10.5*cm; col2 = 6.5*cm
     client_rows = [
-        [
-            Paragraph("CLIENT", style_client_label),
-            Paragraph("COUVERTS", style_client_label),
-        ],
-        [
-            Paragraph(f"{firstname} {name}", style_client_value),
-            Paragraph(f"{num_guests} personne{'s' if num_guests > 1 else ''}", style_client_value),
-        ],
+        [Paragraph("CLIENT", sCL),        Paragraph("COUVERTS", sCL)],
+        [Paragraph(f"{firstname} {name}", sCV),
+         Paragraph(f"{num_guests} personne{'s' if num_guests > 1 else ''}", sCV)],
     ]
     if address:
-        client_rows.append([Paragraph("ADRESSE DE LIVRAISON", style_client_label), Paragraph("", style_client_label)])
-        client_rows.append([Paragraph(address, style_client_value), Paragraph("", style_client_value)])
-
-    client_table = Table(client_rows, colWidths=[11*cm, 6*cm])
-    client_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), CREME),
-        ('BOX', (0,0), (-1,-1), 1, OR_CLAIR),
-        ('LINEBELOW', (0,1), (-1,1), 0.5, OR_CLAIR),
-        ('TOPPADDING', (0,0), (-1,-1), 6),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
-        ('LEFTPADDING', (0,0), (-1,-1), 12),
-        ('RIGHTPADDING', (0,0), (-1,-1), 12),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        client_rows += [
+            [Paragraph("ADRESSE DE LIVRAISON", sCL), Paragraph("", sCL)],
+            [Paragraph(address, sCV), Paragraph("", sCV)],
+        ]
+    ct = Table(client_rows, colWidths=[col1, col2])
+    ct.setStyle(TableStyle([
+        ('BACKGROUND',(0,0),(-1,-1), PARCHEMIN),
+        ('BOX',(0,0),(-1,-1), 1, OR_PALE),
+        ('LINEBELOW',(0,1),(-1,1), 0.5, OR_PALE),
+        ('TOPPADDING',(0,0),(-1,-1), 5), ('BOTTOMPADDING',(0,0),(-1,-1), 5),
+        ('LEFTPADDING',(0,0),(-1,-1), 12), ('RIGHTPADDING',(0,0),(-1,-1), 10),
+        ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
     ]))
-    elements.append(client_table)
-    elements.append(Spacer(1, 0.4*cm))
+    elements.append(ct)
+    elements.append(Spacer(1, 0.35*cm))
 
-    # --- PLATS CHOISIS (résumé) ---
+    # Bandeau plats choisis
     if selected_dishes:
-        plats_text = "  •  ".join(selected_dishes)
-        plats_style = ParagraphStyle(
-            'Plats', parent=styles['Normal'],
-            fontSize=9, textColor=MARRON_MOYEN, fontName='Helvetica-Oblique',
-            alignment=TA_CENTER
-        )
-        plats_data = [[Paragraph(f"Menu choisi : {plats_text}", plats_style)]]
-        plats_table = Table(plats_data, colWidths=[17*cm])
-        plats_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F5ECD7")),
-            ('TOPPADDING', (0,0), (-1,-1), 6),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-            ('LINEABOVE', (0,0), (-1,0), 1, OR),
-            ('LINEBELOW', (0,0), (-1,0), 1, OR),
-        ]))
-        elements.append(plats_table)
+        plats_text = "  ·  ".join(selected_dishes)
+        elements.append(Table(
+            [[Paragraph(plats_text, S('sP', fontSize=8, textColor=TERRE,
+                fontName='Helvetica-Oblique', alignment=TA_CENTER, leading=12))]],
+            colWidths=[W],
+            style=TableStyle([
+                ('BACKGROUND',(0,0),(-1,-1), SABLE),
+                ('TOPPADDING',(0,0),(-1,-1), 5), ('BOTTOMPADDING',(0,0),(-1,-1), 5),
+                ('LINEABOVE',(0,0),(-1,0), 0.5, OR), ('LINEBELOW',(0,0),(-1,0), 0.5, OR),
+                ('LEFTPADDING',(0,0),(-1,-1), 8), ('RIGHTPADDING',(0,0),(-1,-1), 8),
+            ])
+        ))
 
     elements.append(Spacer(1, 0.5*cm))
 
-    # --- LISTE DE COURSES PAR PLAT ---
+    # ══════════════════════════════════════════
+    # SECTION 1 — PAR PLAT
+    # ══════════════════════════════════════════
+    # Titre de section
+    elements.append(Table(
+        [[Paragraph("PAR PLAT", sSH)]],
+        colWidths=[W],
+        style=TableStyle([
+            ('BACKGROUND',(0,0),(-1,-1), TERRE),
+            ('TOPPADDING',(0,0),(-1,-1), 7), ('BOTTOMPADDING',(0,0),(-1,-1), 7),
+            ('LINEABOVE',(0,0),(-1,0), 2, OR), ('LINEBELOW',(0,0),(-1,0), 2, OR),
+        ])
+    ))
+    elements.append(Spacer(1, 0.3*cm))
+
+    ACCENTS = [TERRACOTTA, TERRE, colors.HexColor("#8B4513"), colors.HexColor("#A0522D"), colors.HexColor("#CD853F")]
+
     for i, (plat, group) in enumerate(shopping_df.groupby("Plat", sort=False)):
+        accent = ACCENTS[i % len(ACCENTS)]
+        pe = []
 
-        plat_elements = []
+        # Titre du plat : pastille colorée + nom
+        pe.append(Table(
+            [[Paragraph(f"  {plat}", sPT)]],
+            colWidths=[W],
+            style=TableStyle([
+                ('BACKGROUND',(0,0),(-1,-1), accent),
+                ('TOPPADDING',(0,0),(-1,-1), 7), ('BOTTOMPADDING',(0,0),(-1,-1), 7),
+                ('LEFTPADDING',(0,0),(-1,-1), 10),
+                ('LINEBELOW',(0,0),(-1,0), 1.5, OR),
+            ])
+        ))
 
-        # Titre du plat
-        titre_data = [[Paragraph(f"  {plat}", style_plat_titre)]]
-        titre_table = Table(titre_data, colWidths=[17*cm])
-        bg_color = MARRON_FONCE if i % 2 == 0 else MARRON_MOYEN
-        titre_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), bg_color),
-            ('TOPPADDING', (0,0), (-1,-1), 8),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
-        ]))
-        # Override text color for title in the table
-        titre_data_white = [[Paragraph(
-            f"  {plat}",
-            ParagraphStyle('PT', parent=styles['Normal'],
-                fontSize=12, textColor=BLANC, fontName='Times-Bold',
-                spaceBefore=0, spaceAfter=0, leading=16)
-        )]]
-        titre_table2 = Table(titre_data_white, colWidths=[17*cm])
-        titre_table2.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), bg_color),
-            ('TOPPADDING', (0,0), (-1,-1), 8),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
-            ('LEFTPADDING', (0,0), (-1,-1), 12),
-        ]))
-        plat_elements.append(titre_table2)
-
-        # Ingrédients en tableau 2 colonnes
-        rows = list(group.iterrows())
+        # Ingrédients : zébrage sable/blanc
         ing_data = []
-        style_ing_cell = ParagraphStyle(
-            'IngCell', parent=styles['Normal'],
-            fontSize=10, textColor=MARRON_FONCE, fontName='Helvetica',
-        )
-        style_qty_cell = ParagraphStyle(
-            'QtyCell', parent=styles['Normal'],
-            fontSize=10, textColor=OR, fontName='Helvetica-Bold',
-            alignment=TA_RIGHT,
-        )
-
         for _, row in group.iterrows():
             qty = row['Quantité']
             qty_str = str(int(qty)) if qty == int(qty) else f"{qty:.1f}"
             ing_data.append([
-                Paragraph(f"• {row['Ingrédient']}", style_ing_cell),
-                Paragraph(f"{qty_str} {row['Unité']}", style_qty_cell),
+                Paragraph(f"  {row['Ingrédient']}", sIL),
+                Paragraph(f"{qty_str} {row['Unité']}", sQT),
             ])
 
-        # Tableau simple 1 colonne (ingredient + quantité)
-        # colWidths: 12cm nom + 5cm quantité = 17cm total (correspond à la largeur utile avec marges 2cm*2)
-        ing_table = Table(ing_data, colWidths=[12*cm, 5*cm])
-
-        ing_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), BLANC),
-            ('ROWBACKGROUNDS', (0,0), (-1,-1), [BLANC, CREME]),
-            ('TOPPADDING', (0,0), (-1,-1), 5),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 5),
-            ('LEFTPADDING', (0,0), (-1,-1), 12),
-            ('RIGHTPADDING', (0,0), (-1,-1), 8),
-            ('LINEBELOW', (0,-1), (-1,-1), 0.5, OR_CLAIR),
+        t = Table(ing_data, colWidths=[12.5*cm, 4.5*cm])
+        t.setStyle(TableStyle([
+            ('ROWBACKGROUNDS',(0,0),(-1,-1), [BLANC, SABLE]),
+            ('TOPPADDING',(0,0),(-1,-1), 5), ('BOTTOMPADDING',(0,0),(-1,-1), 5),
+            ('LEFTPADDING',(0,0),(-1,-1), 10), ('RIGHTPADDING',(0,0),(-1,-1), 8),
+            ('LINEBELOW',(0,-1),(-1,-1), 0.5, OR_PALE),
+            # Ligne colorée à gauche de chaque ligne impaire
+            ('LINEBEFORE',(0,0),(0,-1), 2, accent),
         ]))
-        plat_elements.append(ing_table)
-        plat_elements.append(Spacer(1, 0.3*cm))
+        pe.append(t)
+        pe.append(Spacer(1, 0.25*cm))
+        elements.append(KeepTogether(pe))
 
-        elements.append(KeepTogether(plat_elements))
+    # ══════════════════════════════════════════
+    # SECTION 2 — LISTE GLOBALE CONSOLIDÉE
+    # ══════════════════════════════════════════
+    elements.append(Spacer(1, 0.4*cm))
+    elements.append(Table(
+        [[Paragraph("RECAPITULATIF GLOBAL", sSH)]],
+        colWidths=[W],
+        style=TableStyle([
+            ('BACKGROUND',(0,0),(-1,-1), ENCRE),
+            ('TOPPADDING',(0,0),(-1,-1), 7), ('BOTTOMPADDING',(0,0),(-1,-1), 7),
+            ('LINEABOVE',(0,0),(-1,0), 2, OR), ('LINEBELOW',(0,0),(-1,0), 2, OR),
+        ])
+    ))
+    elements.append(Spacer(1, 0.3*cm))
 
-    # --- PIED DE PAGE ---
-    elements.append(Spacer(1, 0.8*cm))
-    elements.append(HRFlowable(width="100%", thickness=1, color=OR, spaceAfter=8))
-    footer_style = ParagraphStyle(
-        'Footer', parent=styles['Normal'],
-        fontSize=8, textColor=colors.HexColor("#999999"),
-        fontName='Helvetica-Oblique', alignment=TA_CENTER
+    # Consolidation globale (somme toutes unités identiques)
+    global_df = (
+        shopping_df.groupby(['Ingrédient', 'Unité'], sort=True)
+        .agg(Quantité=('Quantité', 'sum'))
+        .reset_index()
+        .sort_values('Ingrédient')
     )
+
+    # Affichage en 2 colonnes côte à côte
+    global_rows = list(global_df.iterrows())
+    mid = (len(global_rows) + 1) // 2
+    left  = global_rows[:mid]
+    right = global_rows[mid:]
+    while len(right) < len(left):
+        right.append((None, None))
+
+    sGL = S('sGL', fontSize=9,  textColor=ENCRE,      fontName='Times-Roman', leading=13)
+    sGQ = S('sGQ', fontSize=9,  textColor=TERRACOTTA, fontName='Helvetica-Bold', leading=13, alignment=TA_RIGHT)
+    sGE = S('sGE', fontSize=9,  textColor=BLANC,      fontName='Times-Roman', leading=13)
+
+    global_table_data = []
+    for (_, lrow), (_, rrow) in zip(left, right):
+        lqty = lrow['Quantité']
+        lqty_str = str(int(lqty)) if lqty == int(lqty) else f"{lqty:.1f}"
+        lcell_l = Paragraph(f"  {lrow['Ingrédient']}", sGL)
+        lcell_r = Paragraph(f"{lqty_str} {lrow['Unité']}", sGQ)
+
+        if rrow is not None:
+            rqty = rrow['Quantité']
+            rqty_str = str(int(rqty)) if rqty == int(rqty) else f"{rqty:.1f}"
+            rcell_l = Paragraph(f"  {rrow['Ingrédient']}", sGL)
+            rcell_r = Paragraph(f"{rqty_str} {rrow['Unité']}", sGQ)
+        else:
+            rcell_l = Paragraph("", sGE)
+            rcell_r = Paragraph("", sGE)
+
+        global_table_data.append([lcell_l, lcell_r, Paragraph("", sGE), rcell_l, rcell_r])
+
+    gt = Table(global_table_data, colWidths=[6.2*cm, 2.3*cm, 0.8*cm, 6.2*cm, 1.5*cm])
+    gt.setStyle(TableStyle([
+        ('ROWBACKGROUNDS',(0,0),(-1,-1), [PARCHEMIN, SABLE]),
+        ('TOPPADDING',(0,0),(-1,-1), 5), ('BOTTOMPADDING',(0,0),(-1,-1), 5),
+        ('LEFTPADDING',(0,0),(-1,-1), 6), ('RIGHTPADDING',(0,0),(-1,-1), 4),
+        ('LINEAFTER',(1,0),(1,-1), 0.5, OR_PALE),   # séparateur centre
+        ('LINEAFTER',(2,0),(2,-1), 0.5, OR_PALE),
+        ('BOX',(0,0),(-1,-1), 0.5, OR_PALE),
+    ]))
+    elements.append(gt)
+
+    # ══════════════════════════════════════════
+    # PIED DE PAGE
+    # ══════════════════════════════════════════
+    elements.append(Spacer(1, 0.6*cm))
+    elements.append(Table([[""]], colWidths=[W], rowHeights=[1.5],
+        style=TableStyle([('BACKGROUND',(0,0),(-1,-1), OR)])))
+    elements.append(Spacer(1, 0.2*cm))
     elements.append(Paragraph(
-        "La Valise aux Epices — Cuisine faite maison, livree avec amour",
-        footer_style
+        "La Valise aux Epices  —  Cuisine faite maison, livree avec amour",
+        sRM
     ))
 
     doc.build(elements)
@@ -647,7 +644,7 @@ else:
         if not selected_dishes:
             st.error("⚠️ Veuillez sélectionner au moins un plat.")
         elif len(selected_dishes) > 5:
-            st.error(f"⚠️ Vous avez sélectionné {len(selected_dishes)} plats. Maximum 5 pour la semaine.")
+            st.error(f"⚠️ Vous avez sélectionné {len(selected_dishes)} plats. Maximum 5 autorisés.")
         elif not name or not firstname or not address:
             st.error("⚠️ Veuillez remplir toutes vos informations (Nom, Prénom, Adresse).")
         else:
