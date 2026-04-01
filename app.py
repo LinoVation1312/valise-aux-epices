@@ -36,7 +36,7 @@ st.set_page_config(
 st.markdown("""
 <style>
     /* Import Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
 
     /* Fond général */
     .stApp {
@@ -50,17 +50,20 @@ st.markdown("""
 
     /* Titre principal */
     h1 {
-        font-family: 'Playfair Display', serif !important;
+        font-family: 'Cormorant Garamond', serif !important;
         color: #3B2A1A !important;
         text-align: center;
-        font-size: 2.8rem !important;
-        letter-spacing: 1px;
+        font-size: 3rem !important;
+        letter-spacing: 2px;
+        font-weight: 600;
     }
 
     /* Sous-titres */
     h3 {
-        font-family: 'Playfair Display', serif !important;
+        font-family: 'Cormorant Garamond', serif !important;
         color: #7A4F2E !important;
+        font-size: 1.4rem !important;
+        font-weight: 600 !important;
         border-bottom: 2px solid #E8C99A;
         padding-bottom: 6px;
         margin-top: 1.5rem !important;
@@ -103,15 +106,15 @@ st.markdown("""
     .stFormSubmitButton > button {
         background-color: #C47C2B !important;
         color: white !important;
-        font-family: 'Lato', sans-serif !important;
+        font-family: 'Cormorant Garamond', serif !important;
         font-weight: 700 !important;
-        font-size: 1.1rem !important;
+        font-size: 1.15rem !important;
         border: none !important;
         border-radius: 10px !important;
         padding: 0.7rem 2.5rem !important;
         width: 100%;
         transition: background-color 0.3s;
-        letter-spacing: 1px;
+        letter-spacing: 1.5px;
     }
     .stFormSubmitButton > button:hover {
         background-color: #A5621E !important;
@@ -119,13 +122,25 @@ st.markdown("""
 
     /* Download button */
     .stDownloadButton > button {
-        background-color: #3B2A1A !important;
-        color: white !important;
-        font-family: 'Lato', sans-serif !important;
+        background-color: #C47C2B !important;
+        color: #FFFFFF !important;
+        font-family: 'Cormorant Garamond', serif !important;
         font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        letter-spacing: 1px !important;
+        border: none !important;
         border-radius: 10px !important;
         width: 100%;
-        padding: 0.7rem !important;
+        padding: 0.75rem 1.5rem !important;
+        box-shadow: 0 3px 10px rgba(196,124,43,0.4) !important;
+        transition: background-color 0.3s, box-shadow 0.3s !important;
+    }
+    .stDownloadButton > button:hover {
+        background-color: #A5621E !important;
+        box-shadow: 0 5px 15px rgba(196,124,43,0.5) !important;
+    }
+    .stDownloadButton > button p {
+        color: #FFFFFF !important;
     }
 
     /* Radio */
@@ -161,17 +176,19 @@ st.markdown("""
     }
     .banner h1 {
         color: #FEF6E8 !important;
-        font-family: 'Playfair Display', serif !important;
-        font-size: 2.5rem !important;
+        font-family: 'Cormorant Garamond', serif !important;
+        font-size: 2.8rem !important;
+        font-weight: 600 !important;
         margin: 0 !important;
+        letter-spacing: 3px;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     .banner p {
         color: #E8C99A !important;
         font-family: 'Lato', sans-serif !important;
-        font-size: 1rem !important;
+        font-size: 0.85rem !important;
         margin: 8px 0 0 !important;
-        letter-spacing: 2px;
+        letter-spacing: 4px;
         text-transform: uppercase;
     }
 
@@ -290,21 +307,22 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     style_titre = ParagraphStyle(
         'Titre',
         parent=styles['Normal'],
-        fontSize=28,
+        fontSize=22,
         textColor=BLANC,
         alignment=TA_CENTER,
-        fontName='Helvetica-Bold',
-        spaceAfter=2,
+        fontName='Times-Bold',
+        spaceAfter=0,
+        leading=28,
     )
     style_sous_titre = ParagraphStyle(
         'SousTitre',
         parent=styles['Normal'],
-        fontSize=11,
+        fontSize=9,
         textColor=OR_CLAIR,
         alignment=TA_CENTER,
         fontName='Helvetica',
         spaceAfter=0,
-        letterSpacing=2,
+        leading=14,
     )
     style_client_label = ParagraphStyle(
         'ClientLabel',
@@ -353,25 +371,30 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     elements = []
 
     # --- HEADER BANNIÈRE ---
-    header_data = [[Paragraph("La Valise aux Épices", style_titre)]]
+    header_data = [[Paragraph("La Valise aux Epices", style_titre)]]
     header_table = Table(header_data, colWidths=[17*cm])
     header_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), MARRON_FONCE),
-        ('ROUNDEDCORNERS', [12, 12, 12, 12]),
-        ('TOPPADDING', (0,0), (-1,-1), 18),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+        ('TOPPADDING', (0,0), (-1,-1), 20),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 14),
         ('LEFTPADDING', (0,0), (-1,-1), 20),
         ('RIGHTPADDING', (0,0), (-1,-1), 20),
     ]))
     elements.append(header_table)
 
+    # Bande dorée sous le titre
+    gold_bar_data = [[Paragraph("", style_sous_titre)]]
+    gold_bar = Table([[""]], colWidths=[17*cm], rowHeights=[4])
+    gold_bar.setStyle(TableStyle([('BACKGROUND', (0,0), (-1,-1), OR)]))
+    elements.append(gold_bar)
+
     # Sous-titre sous le header
-    sub_data = [[Paragraph("VOTRE LISTE DE COURSES PERSONNALISÉE", style_sous_titre)]]
+    sub_data = [[Paragraph("VOTRE LISTE DE COURSES PERSONNALISEE", style_sous_titre)]]
     sub_table = Table(sub_data, colWidths=[17*cm])
     sub_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), MARRON_MOYEN),
-        ('TOPPADDING', (0,0), (-1,-1), 7),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 7),
+        ('TOPPADDING', (0,0), (-1,-1), 8),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
     ]))
     elements.append(sub_table)
     elements.append(Spacer(1, 0.5*cm))
@@ -445,8 +468,8 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
         titre_data_white = [[Paragraph(
             f"  {plat}",
             ParagraphStyle('PT', parent=styles['Normal'],
-                fontSize=13, textColor=BLANC, fontName='Helvetica-Bold',
-                spaceBefore=0, spaceAfter=0)
+                fontSize=12, textColor=BLANC, fontName='Times-Bold',
+                spaceBefore=0, spaceAfter=0, leading=16)
         )]]
         titre_table2 = Table(titre_data_white, colWidths=[17*cm])
         titre_table2.setStyle(TableStyle([
