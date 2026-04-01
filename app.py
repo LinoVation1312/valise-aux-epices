@@ -389,7 +389,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     elements.append(gold_bar)
 
     # Sous-titre sous le header
-    sub_data = [[Paragraph("VOTRE LISTE DE COURSES PERSONNALISEE", style_sous_titre)]]
+    sub_data = [[Paragraph("VOTRE LISTE DE COURSES", style_sous_titre)]]
     sub_table = Table(sub_data, colWidths=[17*cm])
     sub_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), MARRON_MOYEN),
@@ -647,7 +647,7 @@ else:
         if not selected_dishes:
             st.error("⚠️ Veuillez sélectionner au moins un plat.")
         elif len(selected_dishes) > 5:
-            st.error(f"⚠️ Vous avez sélectionné {len(selected_dishes)} plats. Maximum 5 autorisés.")
+            st.error(f"⚠️ Vous avez sélectionné {len(selected_dishes)} plats. Maximum 5 pour la semaine.")
         elif not name or not firstname or not address:
             st.error("⚠️ Veuillez remplir toutes vos informations (Nom, Prénom, Adresse).")
         else:
