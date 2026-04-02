@@ -120,7 +120,7 @@ st.markdown("""
     }
 
     /* Catégorie headers */
-    .cat-header-entree {
+    .cat-header-entrée {
         background: linear-gradient(90deg, #2E7D32, #43A047);
         color: white; border-radius: 10px; padding: 8px 14px;
         font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
