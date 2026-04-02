@@ -326,8 +326,8 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
 
     CAT_COLORS = {
         'Entrée':  colors.HexColor("#F5CF27"),  
-        'Plat':    colors.HexColor("#D4845A"),   # orange terracotta moins saturé
-        'Dessert': colors.HexColor("#8B1A3A"),   # rouge bordeaux profond
+        'Plat':    colors.HexColor("#D4845C"),   # orange terracotta moins saturé
+        'Dessert': colors.HexColor("#8B1A3B"),   
     }
     CAT_ORDER = ['Entrée', 'Plat', 'Dessert']
     ACCENTS = [TERRACOTTA, TERRE, colors.HexColor("#8B4513"), colors.HexColor("#A0522D"), colors.HexColor("#CD853F")]
