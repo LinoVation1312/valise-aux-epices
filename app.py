@@ -121,21 +121,21 @@ st.markdown("""
 
     /* Catégorie headers */
     .cat-header-entrée {
-        background: linear-gradient(90deg, #2E7D32, #43A047);
+        background: #F5CF27;
         color: white; border-radius: 10px; padding: 8px 14px;
         font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
         font-weight: 700; letter-spacing: 1px; margin: 12px 0 6px 0;
         display: flex; align-items: center; gap: 8px;
     }
     .cat-header-plat {
-        background: linear-gradient(90deg, #E65100, #FB8C00);
+        background: #F5A627;
         color: white; border-radius: 10px; padding: 8px 14px;
         font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
         font-weight: 700; letter-spacing: 1px; margin: 12px 0 6px 0;
         display: flex; align-items: center; gap: 8px;
     }
     .cat-header-dessert {
-        background: linear-gradient(90deg, #AD1457, #E91E8C);
+        background: #9E0522;
         color: white; border-radius: 10px; padding: 8px 14px;
         font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
         font-weight: 700; letter-spacing: 1px; margin: 12px 0 6px 0;
