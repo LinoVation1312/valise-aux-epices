@@ -325,9 +325,9 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     elements.append(Spacer(1, 0.3*cm))
 
     CAT_COLORS = {
-        'Entrée':  colors.HexColor("#F5CF27"),  
-        'Plat':    colors.HexColor("#D4845C"),   # orange terracotta moins saturé
-        'Dessert': colors.HexColor("#8B1A3B"),   
+        'Entrée':  colors.HexColor("#F5CF27"),
+        'Plat':    colors.HexColor("#F5A627"),
+        'Dessert': colors.HexColor("#9E0522"),
     }
     CAT_ORDER = ['Entrée', 'Plat', 'Dessert']
     ACCENTS = [TERRACOTTA, TERRE, colors.HexColor("#8B4513"), colors.HexColor("#A0522D"), colors.HexColor("#CD853F")]
@@ -592,17 +592,17 @@ else:
 
     # VÉRIFICATIONS
     if submitted:
+        valou_fait_courses = course_option == "Valou fait les courses (+15€)"
+    
         if not selected_dishes:
             st.error("⚠️ Veuillez sélectionner au moins un plat.")
         elif len(selected_dishes) > 5:
             st.error(f"⚠️ Vous avez sélectionné {len(selected_dishes)} plats. Maximum 5 autorisés.")
-        elif not name or not firstname or not address:
-            st.error("⚠️ Veuillez remplir toutes vos informations (Nom, Prénom, Adresse).")
+        elif valou_fait_courses and (not name or not firstname or not phone or not address):
+            st.error("⚠️ Veuillez remplir vos informations (Nom, Prénom, Téléphone, Adresse) pour que Valou puisse vous livrer.")
         else:
             with st.spinner("Préparation de votre liste de courses..."):
                 shopping_df = calculate_groceries(menu_data, selected_dishes, num_guests)
-                valou_fait_courses = course_option == "Valou fait les courses (+15€)"
-
                 pdf_path = generate_pdf(
                     shopping_df, name, firstname,
                     address=address if valou_fait_courses else None,
@@ -610,7 +610,7 @@ else:
                     selected_dishes=selected_dishes,
                     menu_data=menu_data,
                 )
-
+    
             if not valou_fait_courses:
                 st.success("🎉 Votre liste est prête ! Téléchargez-la ci-dessous.")
                 with open(pdf_path, "rb") as f:
@@ -629,6 +629,6 @@ else:
                             🕐 Valou va faire vos courses et vous contacter très vite au numéro indiqué.
                         </div>
                         """, unsafe_allow_html=True)
-
+    
             if os.path.exists(pdf_path):
                 os.remove(pdf_path)
