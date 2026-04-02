@@ -11,7 +11,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-    HRFlowable, KeepTogether
+    HRFlowable, KeepTogether, PageBreak
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
@@ -325,9 +325,9 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     elements.append(Spacer(1, 0.3*cm))
 
     CAT_COLORS = {
-        'Entrée':  colors.HexColor("#2E7D32"),
-        'Plat':    TERRACOTTA,
-        'Dessert': colors.HexColor("#AD1457"),
+        'Entrée':  colors.HexColor("#7EB87E"),   # vert doux/clair
+        'Plat':    colors.HexColor("#D4845A"),   # orange terracotta moins saturé
+        'Dessert': colors.HexColor("#8B1A3A"),   # rouge bordeaux profond
     }
     CAT_ORDER = ['Entrée', 'Plat', 'Dessert']
     ACCENTS = [TERRACOTTA, TERRE, colors.HexColor("#8B4513"), colors.HexColor("#A0522D"), colors.HexColor("#CD853F")]
@@ -395,6 +395,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
             pe.append(t)
             pe.append(Spacer(1, 0.25*cm))
             elements.append(KeepTogether(pe))
+            elements.append(PageBreak())
 
     # RÉCAPITULATIF GLOBAL
     elements.append(Spacer(1, 0.4*cm))
