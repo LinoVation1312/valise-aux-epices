@@ -121,7 +121,7 @@ st.markdown("""
 
     /* Catégorie headers */
     .cat-header-entrée {
-        background: #D3FF33;
+        background: #9DB510;
         color: white; border-radius: 10px; padding: 8px 14px;
         font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
         font-weight: 700; letter-spacing: 1px; margin: 12px 0 6px 0;
@@ -325,7 +325,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     elements.append(Spacer(1, 0.3*cm))
 
     CAT_COLORS = {
-        'Entrée':  colors.HexColor("#F5CF27"),
+        'Entrée':  colors.HexColor("#9DB510"),
         'Plat':    colors.HexColor("#F5A627"),
         'Dessert': colors.HexColor("#9E0522"),
     }
