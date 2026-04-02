@@ -121,7 +121,7 @@ st.markdown("""
 
     /* Catégorie headers */
     .cat-header-entrée {
-        background: #F5CF27;
+        background: #D3FF33;
         color: white; border-radius: 10px; padding: 8px 14px;
         font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
         font-weight: 700; letter-spacing: 1px; margin: 12px 0 6px 0;
