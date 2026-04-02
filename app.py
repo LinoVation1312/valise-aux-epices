@@ -325,7 +325,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     elements.append(Spacer(1, 0.3*cm))
 
     CAT_COLORS = {
-        'Entrée':  colors.HexColor("#7EB87E"),   # vert doux/clair
+        'Entrée':  colors.HexColor("#F5CF27"),  
         'Plat':    colors.HexColor("#D4845A"),   # orange terracotta moins saturé
         'Dessert': colors.HexColor("#8B1A3A"),   # rouge bordeaux profond
     }
