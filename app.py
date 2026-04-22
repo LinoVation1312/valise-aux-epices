@@ -84,31 +84,24 @@ st.markdown("""
         background-color: #FEF6E8; border-radius: 10px;
         padding: 12px 16px; border: 1.5px solid #E8C99A;
     }
-
-    /* Banner */
+    
+/* Banner */
     .banner {
-        background: linear-gradient(135deg, #3B2A1A 0%, #7A4F2E 50%, #C47C2B 100%);
-        border-radius: 16px; padding: 20px 28px 18px;
-        margin-bottom: 28px; box-shadow: 0 4px 20px rgba(59,42,26,0.25);
-        display: flex; align-items: center; justify-content: center; gap: 20px;
+        background: linear-gradient(160deg, #1C1208 0%, #3B2A1A 40%, #6B3D2E 80%, #C47C2B 100%);
+        border-radius: 18px; padding: 28px 28px 22px;
+        margin-bottom: 28px; box-shadow: 0 6px 28px rgba(59,42,26,0.40);
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
     }
     .banner-logo {
-        width: 82px; height: 82px; object-fit: cover;
-        border-radius: 50%; border: 3px solid #E8C99A;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.4); flex-shrink: 0;
+        width: 220px; height: 220px; object-fit: cover;
+        border-radius: 14px; border: 3px solid #E8C99A;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.55);
     }
-    .banner-text { text-align: left; }
-    .banner-text h1 {
-        color: #FEF6E8 !important; font-family: 'Cormorant Garamond', serif !important;
-        font-size: 2.5rem !important; font-weight: 600 !important; margin: 0 0 4px 0 !important;
-        letter-spacing: 3px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); line-height: 1.1;
-    }
-    .banner-text p {
+    .banner-tagline {
         color: #E8C99A !important; font-family: 'Lato', sans-serif !important;
         font-size: 0.78rem !important; margin: 0 !important;
-        letter-spacing: 4px; text-transform: uppercase;
+        letter-spacing: 4px; text-transform: uppercase; text-align: center;
     }
-
     .divider {
         height: 2px; background: linear-gradient(90deg, transparent, #E8C99A, transparent);
         margin: 20px 0; border: none;
@@ -608,15 +601,20 @@ La liste de courses est en pièce jointe.
 # =====================================================================
 
 # Banner avec logo
-logo_b64 = get_logo_base64()
 if logo_b64:
     st.markdown(f"""
     <div class="banner">
         <img src="{logo_b64}" class="banner-logo" alt="Logo La Valise aux Épices">
-        <div class="banner-text">
-            <h1>La Valise aux Épices</h1>
-            <p>Cuisine maison · Livraison à domicile</p>
+        <p class="banner-tagline">Cuisine maison · Livraison à domicile</p>
+    </div>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <div class="banner">
+        <div style="font-family:'Cormorant Garamond',serif;color:#FEF6E8;font-size:2.5rem;font-weight:600;letter-spacing:3px;text-align:center;">
+            🥘 La Valise aux Épices
         </div>
+        <p class="banner-tagline">Cuisine maison · Livraison à domicile</p>
     </div>
     """, unsafe_allow_html=True)
 else:
