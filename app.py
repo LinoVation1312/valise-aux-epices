@@ -708,16 +708,21 @@ else:
         st.markdown("### 🛒 Gestion des courses")
         course_option = st.radio(
             "Comment souhaitez-vous gérer les courses ?",
-            options=["Je fais les courses moi-même", "Valou fait les courses (+15€)"],
+            options=["Je fais les courses moi-même", "Valou fait les courses (+20€)*"],
             help="Si Valou fait les courses, votre liste lui sera envoyée directement par email."
         )
-
+        st.markdown("""
+        <p style="font-size:0.78rem; color:#888; margin-top:4px; font-style:italic;">
+            * après remise de 50 % de crédit d'impôt
+        </p>
+        """, unsafe_allow_html=True)
+        
         st.markdown("<br>", unsafe_allow_html=True)
         submitted = st.form_submit_button("✅ Valider ma commande")
 
     # VÉRIFICATIONS & TRAITEMENT
     if submitted:
-        valou_fait_courses = course_option == "Valou fait les courses (+15€)"
+        valou_fait_courses = course_option == "Valou fait les courses (+20€)*"
 
         if not selected_dishes:
             st.error("⚠️ Veuillez sélectionner au moins un plat.")
