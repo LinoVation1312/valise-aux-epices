@@ -87,20 +87,12 @@ st.markdown("""
     
 /* Banner */
     .banner {
-        background: linear-gradient(160deg, #1C1208 0%, #3B2A1A 40%, #6B3D2E 80%, #C47C2B 100%);
-        border-radius: 18px; padding: 28px 28px 22px;
+        border-radius: 18px; overflow: hidden;
         margin-bottom: 28px; box-shadow: 0 6px 28px rgba(59,42,26,0.40);
-        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+        line-height: 0;
     }
     .banner-logo {
-        width: 220px; height: 220px; object-fit: cover;
-        border-radius: 14px; border: 3px solid #E8C99A;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.55);
-    }
-    .banner-tagline {
-        color: #E8C99A !important; font-family: 'Lato', sans-serif !important;
-        font-size: 0.78rem !important; margin: 0 !important;
-        letter-spacing: 4px; text-transform: uppercase; text-align: center;
+        width: 100%; height: auto; object-fit: cover; display: block;
     }
     .divider {
         height: 2px; background: linear-gradient(90deg, transparent, #E8C99A, transparent);
@@ -606,19 +598,14 @@ if logo_b64:
     st.markdown(f"""
     <div class="banner">
         <img src="{logo_b64}" class="banner-logo" alt="Logo La Valise aux Épices">
-        <p class="banner-tagline">Cuisine maison · Livraison à domicile</p>
     </div>
     """, unsafe_allow_html=True)
 else:
     st.markdown("""
-    <div class="banner">
-        <div style="font-family:'Cormorant Garamond',serif;color:#FEF6E8;font-size:2.5rem;font-weight:600;letter-spacing:3px;text-align:center;">
-            🥘 La Valise aux Épices
-        </div>
-        <p class="banner-tagline">Cuisine maison · Livraison à domicile</p>
+    <div class="banner" style="background:linear-gradient(160deg,#1C1208,#C47C2B);padding:28px;text-align:center;font-family:'Cormorant Garamond',serif;color:#FEF6E8;font-size:2.5rem;font-weight:600;letter-spacing:3px;">
+        🥘 La Valise aux Épices
     </div>
     """, unsafe_allow_html=True)
-
 menu_data = load_menu()
 
 if menu_data is None:
