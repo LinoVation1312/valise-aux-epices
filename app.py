@@ -712,8 +712,8 @@ else:
             help="Si Valou fait les courses, votre liste lui sera envoyée directement par email."
         )
         st.markdown("""
-        <p style="font-size:0.78rem; color:#888; margin-top:4px; font-style:italic;">
-            * après remise de 50 % de crédit d'impôt
+        <p style="font-size:0.58rem; color:#888; margin-top:4px; font-style:italic;">
+            * après déduction de 50 % de crédit d'impôt. Prix initial à 40€
         </p>
         """, unsafe_allow_html=True)
         
