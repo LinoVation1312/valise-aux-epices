@@ -713,7 +713,7 @@ else:
         )
         st.markdown("""
         <p style="font-size:0.60rem; color:#888; margin-top:4px; font-style:italic;">
-            * après déduction de 50 % de crédit d'impôt. Prix initial de 40€
+            * après déduction de 50 % de crédit d'impôt. Prix initial de 40€.
         </p>
         """, unsafe_allow_html=True)
         
