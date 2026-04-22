@@ -20,7 +20,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 # --- CONFIGURATION ---
 EMAIL_SENDER = st.secrets["EMAIL_SENDER"]
 EMAIL_PASSWORD = st.secrets["EMAIL_PASSWORD"]
-EMAIL_RECEIVER = "lino.conord@gmail.com"
+EMAIL_RECEIVER = "valou.bordes@gmail.com"
 EXCEL_FILE_PATH = "menu_actuel.xlsx"
 LOGO_PATH = "valise.jpg"
 
