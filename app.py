@@ -617,15 +617,6 @@ else:
         <p class="banner-tagline">Cuisine maison · Livraison à domicile</p>
     </div>
     """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-    <div class="banner" style="justify-content:center; padding: 28px 20px 22px;">
-        <div class="banner-text" style="text-align:center;">
-            <h1>🥘 La Valise aux Épices</h1>
-            <p>Cuisine maison · Livraison à domicile</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
 
 menu_data = load_menu()
 
