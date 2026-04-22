@@ -601,6 +601,7 @@ La liste de courses est en pièce jointe.
 # =====================================================================
 
 # Banner avec logo
+logo_b64 = get_logo_base64()
 if logo_b64:
     st.markdown(f"""
     <div class="banner">
