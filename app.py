@@ -20,7 +20,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 # --- CONFIGURATION ---
 EMAIL_SENDER = st.secrets["EMAIL_SENDER"]
 EMAIL_PASSWORD = st.secrets["EMAIL_PASSWORD"]
-EMAIL_RECEIVER = "valou.bordes@gmail.com"
+EMAIL_RECEIVER = "lavaliseauxepices@gmail.com"
 EXCEL_FILE_PATH = "menu_actuel.xlsx"
 LOGO_PATH = "valise.jpg"
 
@@ -549,7 +549,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
         style=TableStyle([('BACKGROUND', (0,0), (-1,-1), OR)])))
     elements.append(Spacer(1, 0.2*cm))
     elements.append(Paragraph(
-        "La Valise aux Epices  —  Cuisine faite maison, livree avec amour", sRM
+        "", sRM
     ))
 
     doc.build(elements)
