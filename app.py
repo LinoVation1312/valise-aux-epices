@@ -11,8 +11,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-    KeepTogether, PageBreak
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
@@ -268,29 +267,12 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
 
     ENCRE      = colors.HexColor("#1C1208")
     TERRACOTTA = colors.HexColor("#B85C38")
-    TERRE      = colors.HexColor("#6B3D2E")
     OR         = colors.HexColor("#D4973A")
     OR_PALE    = colors.HexColor("#EDD79A")
     SABLE      = colors.HexColor("#F5ECD7")
     PARCHEMIN  = colors.HexColor("#FBF6EC")
     BLANC      = colors.white
     GRIS       = colors.HexColor("#888888")
-
-    # Couleurs sous-catégories plats
-    C_VIANDE  = colors.HexColor("#8B2500")
-    C_POISSON = colors.HexColor("#1565C0")
-    C_VEGE    = colors.HexColor("#2E7D32")
-    C_ENTREE  = colors.HexColor("#9DB510")
-    C_DESSERT = colors.HexColor("#9E0522")
-    C_PLAT    = colors.HexColor("#C47C2B")
-
-    CAT_PDF_COLORS = {
-        'Entrée':      C_ENTREE,
-        'Plat viande': C_VIANDE,
-        'Plat poisson':C_POISSON,
-        'Plat végé':   C_VEGE,
-        'Dessert':     C_DESSERT,
-    }
 
     W = 17 * cm
     doc = SimpleDocTemplate(
@@ -307,13 +289,8 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     sST  = S('sST',  fontSize=8,  textColor=OR_PALE,    fontName='Helvetica',          alignment=TA_CENTER, leading=13, charSpace=2)
     sCL  = S('sCL',  fontSize=8,  textColor=TERRACOTTA, fontName='Helvetica-Bold',     leading=11)
     sCV  = S('sCV',  fontSize=11, textColor=ENCRE,      fontName='Times-Roman',        leading=15)
-    sPT  = S('sPT',  fontSize=12, textColor=BLANC,      fontName='Times-Bold',         leading=16)
-    sIL  = S('sIL',  fontSize=10, textColor=ENCRE,      fontName='Times-Roman',        leading=14)
-    sQT  = S('sQT',  fontSize=10, textColor=TERRACOTTA, fontName='Helvetica-Bold',     leading=14, alignment=TA_RIGHT)
     sRM  = S('sRM',  fontSize=8,  textColor=GRIS,       fontName='Helvetica-Oblique',  alignment=TA_CENTER, leading=12)
     sSH  = S('sSH',  fontSize=11, textColor=BLANC,      fontName='Times-Bold',         leading=15, alignment=TA_CENTER)
-    sCAT = S('sCAT', fontSize=10, textColor=BLANC,      fontName='Helvetica-Bold',     leading=14, alignment=TA_CENTER)
-    sSUB = S('sSUB', fontSize=9,  textColor=BLANC,      fontName='Helvetica-Bold',     leading=13, alignment=TA_LEFT)
 
     elements = []
 
@@ -362,129 +339,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     elements.append(ct)
     elements.append(Spacer(1, 0.35*cm))
 
-    # Bandeau plats choisis
-    if selected_dishes and menu_data:
-        plats_text = "  ·  ".join(
-            f"{CAT_ICONS.get(get_dish_category(menu_data[d]), '🍽️')} {d}"
-            for d in selected_dishes
-        )
-        elements.append(Table(
-            [[Paragraph(plats_text, S('sP', fontSize=8, textColor=TERRE,
-                fontName='Helvetica-Oblique', alignment=TA_CENTER, leading=12))]],
-            colWidths=[W],
-            style=TableStyle([
-                ('BACKGROUND', (0,0), (-1,-1), SABLE),
-                ('TOPPADDING', (0,0), (-1,-1), 5), ('BOTTOMPADDING', (0,0), (-1,-1), 5),
-                ('LINEABOVE', (0,0), (-1,0), 0.5, OR), ('LINEBELOW', (0,0), (-1,0), 0.5, OR),
-                ('LEFTPADDING', (0,0), (-1,-1), 8), ('RIGHTPADDING', (0,0), (-1,-1), 8),
-            ])
-        ))
-
     elements.append(Spacer(1, 0.5*cm))
-
-    # SECTION PAR PLAT
-    elements.append(Table(
-        [[Paragraph("PAR PLAT", sSH)]], colWidths=[W],
-        style=TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), TERRE),
-            ('TOPPADDING', (0,0), (-1,-1), 7), ('BOTTOMPADDING', (0,0), (-1,-1), 7),
-            ('LINEABOVE', (0,0), (-1,0), 2, OR), ('LINEBELOW', (0,0), (-1,0), 2, OR),
-        ])
-    ))
-    elements.append(Spacer(1, 0.3*cm))
-
-    # Grouper les plats sélectionnés par catégorie (ordre défini)
-    dishes_by_cat = {cat: [] for cat in CAT_ORDER}
-    for d in (selected_dishes or []):
-        cat = get_dish_category(menu_data[d]) if menu_data else 'Plat viande'
-        dishes_by_cat.setdefault(cat, []).append(d)
-
-    ACCENTS = [TERRACOTTA, TERRE, colors.HexColor("#8B4513"), colors.HexColor("#A0522D"), colors.HexColor("#CD853F")]
-    dish_counter = 0
-
-    # Regrouper Entrée / [Plat viande + Plat poisson + Plat végé] / Dessert
-    groups = [
-        ('Entrée',  ['Entrée'],                        C_ENTREE,  '🥗  SALADE OU TARTES'),
-        ('Plat',    ['Plat viande','Plat poisson','Plat végé'], C_PLAT, '🍽️  PLATS'),
-        ('Dessert', ['Dessert'],                       C_DESSERT, '🍰  DESSERTS'),
-    ]
-
-    for group_key, cats_in_group, group_color, group_label in groups:
-        all_dishes_in_group = []
-        for c in cats_in_group:
-            all_dishes_in_group.extend(dishes_by_cat.get(c, []))
-        if not all_dishes_in_group:
-            continue
-
-        # Bandeau groupe principal
-        elements.append(Spacer(1, 0.2*cm))
-        elements.append(Table(
-            [[Paragraph(group_label, sCAT)]], colWidths=[W],
-            style=TableStyle([
-                ('BACKGROUND', (0,0), (-1,-1), group_color),
-                ('TOPPADDING', (0,0), (-1,-1), 6), ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-                ('LINEABOVE', (0,0), (-1,0), 1.5, OR_PALE), ('LINEBELOW', (0,0), (-1,0), 1.5, OR_PALE),
-            ])
-        ))
-        elements.append(Spacer(1, 0.15*cm))
-
-        for cat in cats_in_group:
-            dishes = dishes_by_cat.get(cat, [])
-            if not dishes:
-                continue
-
-            # Bandeau sous-catégorie (seulement si c'est un sous-groupe plat)
-            if group_key == 'Plat':
-                sub_color = CAT_PDF_COLORS[cat]
-                sub_label = f"{CAT_ICONS[cat]}  {CAT_LABELS[cat].upper()}"
-                elements.append(Table(
-                    [[Paragraph(f"  {sub_label}", sSUB)]], colWidths=[W],
-                    style=TableStyle([
-                        ('BACKGROUND', (0,0), (-1,-1), sub_color),
-                        ('TOPPADDING', (0,0), (-1,-1), 5), ('BOTTOMPADDING', (0,0), (-1,-1), 5),
-                        ('LEFTPADDING', (0,0), (-1,-1), 16),
-                        ('LINEBELOW', (0,0), (-1,0), 1, OR_PALE),
-                    ])
-                ))
-                elements.append(Spacer(1, 0.1*cm))
-
-            for plat in dishes:
-                group_items = shopping_df[shopping_df['Plat'] == plat]
-                accent = CAT_PDF_COLORS.get(cat, ACCENTS[dish_counter % len(ACCENTS)])
-                dish_counter += 1
-                pe = []
-
-                pe.append(Table(
-                    [[Paragraph(f"  {plat}", sPT)]], colWidths=[W],
-                    style=TableStyle([
-                        ('BACKGROUND', (0,0), (-1,-1), accent),
-                        ('TOPPADDING', (0,0), (-1,-1), 7), ('BOTTOMPADDING', (0,0), (-1,-1), 7),
-                        ('LEFTPADDING', (0,0), (-1,-1), 10),
-                        ('LINEBELOW', (0,0), (-1,0), 1.5, OR),
-                    ])
-                ))
-
-                ing_data = []
-                for _, row in group_items.iterrows():
-                    qty = row['Quantité']
-                    qty_str = str(int(qty)) if qty == int(qty) else f"{qty:.1f}"
-                    ing_data.append([
-                        Paragraph(f"  {row['Ingrédient']}", sIL),
-                        Paragraph(f"{qty_str} {row['Unité']}", sQT),
-                    ])
-
-                t = Table(ing_data, colWidths=[12.5*cm, 4.5*cm])
-                t.setStyle(TableStyle([
-                    ('ROWBACKGROUNDS', (0,0), (-1,-1), [BLANC, SABLE]),
-                    ('TOPPADDING', (0,0), (-1,-1), 5), ('BOTTOMPADDING', (0,0), (-1,-1), 5),
-                    ('LEFTPADDING', (0,0), (-1,-1), 10), ('RIGHTPADDING', (0,0), (-1,-1), 8),
-                    ('LINEBELOW', (0,-1), (-1,-1), 0.5, OR_PALE),
-                    ('LINEBEFORE', (0,0), (0,-1), 2, accent),
-                ]))
-                pe.append(t)
-                pe.append(Spacer(1, 0.25*cm))
-                elements.append(KeepTogether(pe))
-                elements.append(PageBreak())
 
     # RÉCAPITULATIF GLOBAL
     elements.append(Spacer(1, 0.4*cm))
