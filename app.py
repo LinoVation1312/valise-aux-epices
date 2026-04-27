@@ -162,7 +162,7 @@ CAT_ICONS = {
 }
 
 CAT_LABELS = {
-    'Entrée':      'ENTRÉES',
+    'Entrée':      'Salade ou tartes',
     'Plat viande': 'Viande',
     'Plat poisson':'Poisson',
     'Plat végé':   'Végétarien',
@@ -404,7 +404,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
 
     # Regrouper Entrée / [Plat viande + Plat poisson + Plat végé] / Dessert
     groups = [
-        ('Entrée',  ['Entrée'],                        C_ENTREE,  '🥗  ENTRÉES'),
+        ('Entrée',  ['Entrée'],                        C_ENTREE,  '🥗  SALADE OU TARTES'),
         ('Plat',    ['Plat viande','Plat poisson','Plat végé'], C_PLAT, '🍽️  PLATS'),
         ('Dessert', ['Dessert'],                       C_DESSERT, '🍰  DESSERTS'),
     ]
@@ -542,6 +542,11 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
         ('BOX', (0,0), (-1,-1), 0.5, OR_PALE),
     ]))
     elements.append(gt)
+    elements.append(Spacer(1, 0.25*cm))
+    elements.append(Paragraph(
+        "* pensez à avoir dans vos placards huile, vinaigre, sel, poivre",
+        S('sNOTE', fontSize=9, textColor=GRIS, fontName='Helvetica-Oblique', alignment=TA_LEFT, leading=12)
+    ))
 
     # PIED DE PAGE
     elements.append(Spacer(1, 0.6*cm))
@@ -657,7 +662,7 @@ else:
 
         # --- ENTRÉES ---
         if dishes_by_category.get('Entrée'):
-            st.markdown('<div class="cat-header-entree">🥗 &nbsp; ENTRÉES</div>', unsafe_allow_html=True)
+            st.markdown('<div class="cat-header-entree">🥗 &nbsp; SALADE OU TARTES</div>', unsafe_allow_html=True)
             cols = st.columns(3)
             for i, dish in enumerate(dishes_by_category['Entrée']):
                 with cols[i % 3]:
