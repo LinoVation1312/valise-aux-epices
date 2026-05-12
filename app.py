@@ -140,10 +140,8 @@ st.markdown("""
 
 
 # --- CONSTANTES ---
-# Ordre d'affichage des catégories
 CAT_ORDER = ['Entrée', 'Plat viande', 'Plat poisson', 'Plat végé', 'Dessert']
 
-# Mapping catégorie → groupe d'affichage (pour PDF)
 CAT_TO_GROUP = {
     'Entrée':      'Entrée',
     'Plat viande': 'Plat',
@@ -190,15 +188,8 @@ def load_menu():
 
 
 def get_dish_category(df):
-    """
-    Nouvelle structure :
-      - A1 = 'Catégorie :'  /  B1 = catégorie (ex: 'Plat viande', 'Entrée', 'Dessert'...)
-      - A2 = 'Ingrédient'   /  B2 = 'Quantité'  /  C2 = 'Unité'
-      - A3+ = données
-    Retourne la valeur de B1.
-    """
     try:
-        val = df.iloc[0, 1]  # ligne 0 = row 1, colonne 1 = B
+        val = df.iloc[0, 1]
         if pd.notna(val):
             return str(val).strip()
     except Exception:
@@ -207,10 +198,6 @@ def get_dish_category(df):
 
 
 def get_ingredients_df(df):
-    """
-    Retourne un DataFrame avec colonnes ['Ingrédient', 'Quantité', 'Unité']
-    à partir de la ligne 3 (index 2) du sheet.
-    """
     data = df.iloc[2:].copy()
     data.columns = range(len(data.columns))
     result = pd.DataFrame({
@@ -338,7 +325,6 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     ]))
     elements.append(ct)
     elements.append(Spacer(1, 0.35*cm))
-
     elements.append(Spacer(1, 0.5*cm))
 
     # RÉCAPITULATIF GLOBAL
@@ -408,9 +394,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     elements.append(Table([[""]], colWidths=[W], rowHeights=[1.5],
         style=TableStyle([('BACKGROUND', (0,0), (-1,-1), OR)])))
     elements.append(Spacer(1, 0.2*cm))
-    elements.append(Paragraph(
-        "", sRM
-    ))
+    elements.append(Paragraph("", sRM))
 
     doc.build(elements)
     return pdf_filename
@@ -452,7 +436,6 @@ La liste de courses est en pièce jointe.
 # INTERFACE PRINCIPALE
 # =====================================================================
 
-# Banner avec logo
 logo_b64 = get_logo_base64()
 if logo_b64:
     st.markdown(f"""
@@ -466,6 +449,7 @@ else:
         🥘 La Valise aux Épices
     </div>
     """, unsafe_allow_html=True)
+
 menu_data = load_menu()
 
 if menu_data is None:
@@ -475,7 +459,6 @@ if menu_data is None:
     </div>
     """, unsafe_allow_html=True)
 else:
-    # Organiser les plats par catégorie exacte
     dishes_by_category = {cat: [] for cat in CAT_ORDER}
     for dish_name, df in menu_data.items():
         cat = get_dish_category(df)
@@ -486,7 +469,6 @@ else:
 
     with st.form("client_form"):
 
-        # Section 1 : Infos client
         st.markdown("### 👤 Vos informations")
         col1, col2 = st.columns(2)
         with col1:
@@ -498,7 +480,6 @@ else:
 
         st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
 
-        # Section 2 : Repas
         st.markdown("### 🍽️ Votre Repas")
         num_guests = st.selectbox(
             "Pour combien de personnes ?",
@@ -515,7 +496,6 @@ else:
 
         selected_dishes = []
 
-        # --- ENTRÉES ---
         if dishes_by_category.get('Entrée'):
             st.markdown('<div class="cat-header-entree">🥗 &nbsp; SALADE OU TARTES</div>', unsafe_allow_html=True)
             cols = st.columns(3)
@@ -524,7 +504,6 @@ else:
                     if st.checkbox(dish, key=f"dish_{dish}"):
                         selected_dishes.append(dish)
 
-        # --- PLATS (avec sous-catégories) ---
         has_plats = any(dishes_by_category.get(c) for c in ['Plat viande', 'Plat poisson', 'Plat végé'])
         if has_plats:
             st.markdown('<div class="cat-header-plat">🍽️ &nbsp; PLATS</div>', unsafe_allow_html=True)
@@ -553,7 +532,6 @@ else:
                         if st.checkbox(dish, key=f"dish_{dish}"):
                             selected_dishes.append(dish)
 
-        # --- DESSERTS ---
         if dishes_by_category.get('Dessert'):
             st.markdown('<div class="cat-header-dessert">🍰 &nbsp; DESSERTS</div>', unsafe_allow_html=True)
             cols = st.columns(3)
@@ -564,7 +542,6 @@ else:
 
         st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
 
-        # Section 3 : Courses
         st.markdown("### 🛒 Gestion des courses")
         course_option = st.radio(
             "Comment souhaitez-vous gérer les courses ?",
@@ -576,7 +553,7 @@ else:
             * après déduction de 50 % de crédit d'impôt. Prix initial de 40€.
         </p>
         """, unsafe_allow_html=True)
-        
+
         st.markdown("<br>", unsafe_allow_html=True)
         submitted = st.form_submit_button("✅ Valider ma commande")
 
@@ -622,3 +599,148 @@ else:
 
             if os.path.exists(pdf_path):
                 os.remove(pdf_path)
+
+
+# =====================================================================
+# ADMIN
+# =====================================================================
+
+def validate_menu_excel(file_bytes):
+    """
+    Vérifie que le fichier Excel uploadé a la bonne structure.
+    Retourne (True, nb_plats) si tout est OK, (False, message_erreur) sinon.
+    """
+    try:
+        all_sheets = pd.read_excel(file_bytes, sheet_name=None, header=None)
+        sheets = {k: v for k, v in all_sheets.items() if k != "Synthèse"}
+
+        if len(sheets) == 0:
+            return False, "Le fichier ne contient aucun onglet de plat."
+
+        valid_cats = set(CAT_ORDER)
+        errors = []
+
+        for dish_name, df in sheets.items():
+            # Vérifier catégorie en B1
+            try:
+                cat = str(df.iloc[0, 1]).strip()
+                if cat not in valid_cats:
+                    errors.append(f"« {dish_name} » — catégorie invalide : « {cat} »")
+            except Exception:
+                errors.append(f"« {dish_name} » — impossible de lire la catégorie (cellule B1)")
+                continue
+
+            # Vérifier qu'il y a des ingrédients (à partir de la ligne 3)
+            ing_df = df.iloc[2:].dropna(subset=[0])
+            if len(ing_df) == 0:
+                errors.append(f"« {dish_name} » — aucun ingrédient trouvé")
+
+        if errors:
+            return False, "\n".join(f"• {e}" for e in errors)
+
+        return True, len(sheets)
+
+    except Exception as e:
+        return False, f"Impossible de lire le fichier : {e}"
+
+
+st.markdown("---")
+
+with st.expander("🔒 Administration"):
+
+    password = st.text_input("Mot de passe admin", type="password", key="admin_password")
+
+    if password == st.secrets.get("ADMIN_PASSWORD", "valise2026"):
+
+        st.success("✅ Connecté")
+        st.markdown("#### Remplacer le menu Excel")
+        st.markdown("""
+        <div class="info-box">
+            📋 Le fichier doit s'appeler <strong>menu_actuel.xlsx</strong> et respecter la structure habituelle.<br>
+            Une vérification automatique est effectuée avant la publication.
+        </div>
+        """, unsafe_allow_html=True)
+
+        uploaded_file = st.file_uploader(
+            "Choisir le nouveau fichier Excel",
+            type=["xlsx"],
+            key="admin_uploader"
+        )
+
+        if uploaded_file is not None:
+
+            # --- APERÇU ---
+            st.markdown("#### 👀 Aperçu du fichier")
+            try:
+                file_bytes = uploaded_file.read()
+                uploaded_file.seek(0)  # rembobiner pour la suite
+
+                preview_sheets = pd.read_excel(
+                    uploaded_file, sheet_name=None, header=None
+                )
+                preview_sheets = {k: v for k, v in preview_sheets.items() if k != "Synthèse"}
+                uploaded_file.seek(0)
+
+                plat_names = list(preview_sheets.keys())
+                st.markdown(f"**{len(plat_names)} plat(s) détecté(s) :** {', '.join(plat_names)}")
+
+                plat_choisi = st.selectbox(
+                    "Voir les ingrédients d'un plat :",
+                    options=plat_names,
+                    key="admin_preview_select"
+                )
+                if plat_choisi:
+                    df_prev = preview_sheets[plat_choisi]
+                    cat_prev = str(df_prev.iloc[0, 1]).strip() if pd.notna(df_prev.iloc[0, 1]) else "?"
+                    st.markdown(f"Catégorie : **{cat_prev}**")
+                    ing_prev = pd.DataFrame({
+                        'Ingrédient': df_prev.iloc[2:, 0],
+                        'Quantité':   df_prev.iloc[2:, 1],
+                        'Unité':      df_prev.iloc[2:, 2],
+                    }).dropna(subset=['Ingrédient']).reset_index(drop=True)
+                    st.dataframe(ing_prev, use_container_width=True)
+
+            except Exception as e:
+                st.warning(f"Impossible d'afficher l'aperçu : {e}")
+
+            # --- VALIDATION ---
+            st.markdown("#### 🔍 Vérification automatique")
+            uploaded_file.seek(0)
+            ok, result = validate_menu_excel(uploaded_file)
+            uploaded_file.seek(0)
+
+            if ok:
+                st.success(f"✅ Fichier valide — {result} plat(s) prêt(s) à être publiés.")
+            else:
+                st.error(f"❌ Erreurs détectées :\n\n{result}")
+                st.warning("Corrigez le fichier Excel avant de publier.")
+
+            # --- PUBLICATION ---
+            if ok:
+                if st.button("📤 Publier le nouveau menu", key="admin_publish"):
+                    try:
+                        from github import Github
+
+                        g = Github(st.secrets["GITHUB_TOKEN"])
+                        repo = g.get_repo(st.secrets["GITHUB_REPO"])
+                        path = "menu_actuel.xlsx"
+
+                        uploaded_file.seek(0)
+                        content = uploaded_file.read()
+
+                        contents = repo.get_contents(path)
+                        repo.update_file(
+                            path=path,
+                            message="Mise à jour menu via interface admin",
+                            content=content,
+                            sha=contents.sha
+                        )
+
+                        st.success("✅ Menu mis à jour avec succès !")
+                        st.info("Le site se rechargera automatiquement dans quelques secondes.")
+
+                    except Exception as e:
+                        st.error(f"Erreur lors de la publication : {e}")
+
+    elif password != "":
+        st.error("❌ Mot de passe incorrect.")
