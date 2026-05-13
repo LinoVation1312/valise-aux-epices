@@ -49,18 +49,80 @@ st.markdown("""
         padding-bottom: 6px;
         margin-top: 1.5rem !important;
     }
-    p, label, div { font-family: 'Lato', sans-serif !important; color: #3B2A1A; }
 
+    /* ✅ Texte général : UNIQUEMENT sur éléments texte, pas tous les divs */
+    p, label { font-family: 'Lato', sans-serif !important; color: #3B2A1A !important; }
+
+    /* ✅ Inputs texte : fond clair + texte foncé */
     .stTextInput > div > div > input {
         border: 1.5px solid #D4A96A; border-radius: 8px;
-        background-color: #FFFDF8; color: #3B2A1A;
+        background-color: #FFFDF8 !important; color: #3B2A1A !important;
     }
     .stTextInput > div > div > input:focus {
         border-color: #C47C2B; box-shadow: 0 0 0 2px rgba(196,124,43,0.2);
     }
-    .stSelectbox > div > div { border: 1.5px solid #D4A96A; border-radius: 8px; background-color: #FFFDF8; }
-    .stCheckbox > label { font-size: 0.95rem; color: #3B2A1A; }
+    .stTextInput > div > div > input::placeholder {
+        color: #B09070 !important;
+    }
 
+    /* ✅ Selectbox : fond clair + texte foncé garanti */
+    .stSelectbox > div > div {
+        border: 1.5px solid #D4A96A !important;
+        border-radius: 8px !important;
+        background-color: #FFFDF8 !important;
+    }
+    .stSelectbox > div > div > div {
+        color: #3B2A1A !important;
+        background-color: #FFFDF8 !important;
+    }
+    /* Dropdown ouvert */
+    [data-baseweb="popover"], [data-baseweb="menu"] {
+        background-color: #FFFDF8 !important;
+    }
+    [data-baseweb="option"] {
+        background-color: #FFFDF8 !important;
+        color: #3B2A1A !important;
+    }
+    [data-baseweb="option"]:hover {
+        background-color: #FEF0D5 !important;
+        color: #3B2A1A !important;
+    }
+    [data-baseweb="select"] span {
+        color: #3B2A1A !important;
+    }
+
+    /* ✅ Checkboxes : label lisible sur fond clair */
+    .stCheckbox > label {
+        font-size: 0.95rem !important;
+        color: #3B2A1A !important;
+        font-family: 'Lato', sans-serif !important;
+    }
+    .stCheckbox > label > div {
+        color: #3B2A1A !important;
+    }
+    /* Texte à côté de la case */
+    .stCheckbox span {
+        color: #3B2A1A !important;
+    }
+
+    /* ✅ Radio buttons : fond clair + texte bien contrasté */
+    .stRadio > div {
+        background-color: #FEF6E8;
+        border-radius: 10px;
+        padding: 12px 16px;
+        border: 1.5px solid #E8C99A;
+    }
+    .stRadio label {
+        color: #3B2A1A !important;
+    }
+    .stRadio span {
+        color: #3B2A1A !important;
+    }
+
+    /* ✅ Tooltip / help text */
+    .stTooltipIcon { color: #C47C2B !important; }
+
+    /* ✅ Bouton principal */
     .stFormSubmitButton > button {
         background-color: #C47C2B !important; color: white !important;
         font-family: 'Cormorant Garamond', serif !important; font-weight: 700 !important;
@@ -68,7 +130,9 @@ st.markdown("""
         padding: 0.7rem 2.5rem !important; width: 100%; transition: background-color 0.3s; letter-spacing: 1.5px;
     }
     .stFormSubmitButton > button:hover { background-color: #A5621E !important; }
+    .stFormSubmitButton > button p { color: white !important; }
 
+    /* ✅ Bouton téléchargement */
     .stDownloadButton > button {
         background-color: #C47C2B !important; color: #FFFFFF !important;
         font-family: 'Cormorant Garamond', serif !important; font-weight: 700 !important;
@@ -79,20 +143,23 @@ st.markdown("""
     .stDownloadButton > button:hover { background-color: #A5621E !important; }
     .stDownloadButton > button p { color: #FFFFFF !important; }
 
-    .stRadio > div {
-        background-color: #FEF6E8; border-radius: 10px;
-        padding: 12px 16px; border: 1.5px solid #E8C99A;
-    }
-    
-/* Banner */
+    /* ✅ Messages success / error / warning : texte toujours lisible */
+    .stAlert > div { color: #3B2A1A !important; }
+    .stSuccess > div { color: #1a4a1a !important; }
+    .stError > div { color: #6a0000 !important; }
+    .stWarning > div { color: #5a3a00 !important; }
+
+    /* ✅ Spinner */
+    .stSpinner > div { color: #C47C2B !important; }
+
+    /* --- Blocs décoratifs (inchangés) --- */
     .banner {
         border-radius: 18px; overflow: hidden;
         margin-bottom: 28px; box-shadow: 0 6px 28px rgba(59,42,26,0.40);
         line-height: 0;
     }
-    .banner-logo {
-        width: 100%; height: auto; object-fit: cover; display: block;
-    }
+    .banner-logo { width: 100%; height: auto; object-fit: cover; display: block; }
+
     .divider {
         height: 2px; background: linear-gradient(90deg, transparent, #E8C99A, transparent);
         margin: 20px 0; border: none;
@@ -100,9 +167,10 @@ st.markdown("""
     .info-box {
         background: #FEF6E8; border-left: 4px solid #C47C2B; border-radius: 8px;
         padding: 12px 16px; margin: 12px 0; font-size: 0.9rem;
+        color: #3B2A1A !important;
     }
 
-    /* Catégorie principale */
+    /* Catégories */
     .cat-header-entree {
         background: #9DB510; color: white; border-radius: 10px; padding: 9px 16px;
         font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 700;
@@ -113,13 +181,11 @@ st.markdown("""
         font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 700;
         letter-spacing: 1px; margin: 16px 0 4px 0;
     }
-    /* Catégorie plat principale */
     .cat-header-plat {
         background: #C47C2B; color: white; border-radius: 10px; padding: 9px 16px;
         font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 700;
         letter-spacing: 1px; margin: 16px 0 4px 0;
     }
-    /* Sous-catégories plat */
     .subcat-viande {
         background: #8B2500; color: white; border-radius: 8px; padding: 6px 14px 6px 22px;
         font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 600;
@@ -137,7 +203,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
 
 # --- CONSTANTES ---
 CAT_ORDER = ['Entrée', 'Plat viande', 'Plat poisson', 'Plat végé', 'Dessert']
