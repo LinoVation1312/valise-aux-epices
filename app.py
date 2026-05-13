@@ -6,7 +6,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
-
+import io
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import cm
@@ -605,13 +605,35 @@ else:
 # ADMIN
 # =====================================================================
 
-def validate_menu_excel(file_bytes):
+SUPPORTED_EXTENSIONS = ["xlsx", "xls", "ods", "csv"]
+
+def read_any_file(file_or_bytes, filename=""):
+    """Lit xlsx / xls / ods / csv → dict {sheet_name: DataFrame} (header=None)."""
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "xlsx"
+    if ext == "csv":
+        df = pd.read_csv(file_or_bytes, header=None)
+        return {"Feuille1": df}
+    engine = {"ods": "odf", "xls": "xlrd"}.get(ext)
+    kwargs = {"engine": engine} if engine else {}
+    return pd.read_excel(file_or_bytes, sheet_name=None, header=None, **kwargs)
+
+
+def convert_to_xlsx_bytes(sheets_dict):
+    """Convertit un dict de DataFrames en bytes xlsx (openpyxl)."""
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+        for sheet_name, df in sheets_dict.items():
+            df.to_excel(writer, sheet_name=sheet_name, index=False, header=False)
+    return buf.getvalue()
+
+
+def validate_menu_excel(file_or_bytes, filename=""):
     """
-    Vérifie que le fichier Excel uploadé a la bonne structure.
-    Retourne (True, nb_plats) si tout est OK, (False, message_erreur) sinon.
+    Vérifie que le fichier uploadé a la bonne structure.
+    Retourne (True, nb_plats) ou (False, message_erreur).
     """
     try:
-        all_sheets = pd.read_excel(file_bytes, sheet_name=None, header=None)
+        all_sheets = read_any_file(file_or_bytes, filename)
         sheets = {k: v for k, v in all_sheets.items() if k != "Synthèse"}
 
         if len(sheets) == 0:
@@ -621,7 +643,6 @@ def validate_menu_excel(file_bytes):
         errors = []
 
         for dish_name, df in sheets.items():
-            # Vérifier catégorie en B1
             try:
                 cat = str(df.iloc[0, 1]).strip()
                 if cat not in valid_cats:
@@ -630,7 +651,6 @@ def validate_menu_excel(file_bytes):
                 errors.append(f"« {dish_name} » — impossible de lire la catégorie (cellule B1)")
                 continue
 
-            # Vérifier qu'il y a des ingrédients (à partir de la ligne 3)
             ing_df = df.iloc[2:].dropna(subset=[0])
             if len(ing_df) == 0:
                 errors.append(f"« {dish_name} » — aucun ingrédient trouvé")
@@ -643,7 +663,6 @@ def validate_menu_excel(file_bytes):
     except Exception as e:
         return False, f"Impossible de lire le fichier : {e}"
 
-
 st.markdown("---")
 
 with st.expander("🔒 Administration"):
@@ -653,67 +672,66 @@ with st.expander("🔒 Administration"):
     if password == st.secrets.get("ADMIN_PASSWORD", "valise2026"):
 
         st.success("✅ Connecté")
-        st.markdown("#### Remplacer le menu Excel")
+        st.markdown("#### Remplacer le menu")
         st.markdown("""
         <div class="info-box">
-            📋 Le fichier doit s'appeler <strong>menu_actuel.xlsx</strong> et respecter la structure habituelle.<br>
-            Une vérification automatique est effectuée avant la publication.
+            📋 Formats acceptés : <strong>.xlsx, .xls, .ods, .csv</strong>.<br>
+            Le fichier sera automatiquement converti et publié sous le nom
+            <strong>menu_actuel.xlsx</strong> sur GitHub.
         </div>
         """, unsafe_allow_html=True)
 
         uploaded_file = st.file_uploader(
-            "Choisir le nouveau fichier Excel",
-            type=["xlsx"],
+            "Choisir le nouveau fichier menu",
+            type=SUPPORTED_EXTENSIONS,
             key="admin_uploader"
         )
 
         if uploaded_file is not None:
+            original_filename = uploaded_file.name
+
+            # --- LECTURE ---
+            file_bytes = uploaded_file.read()
+            uploaded_file.seek(0)
+
+            try:
+                preview_sheets = read_any_file(io.BytesIO(file_bytes), original_filename)
+                preview_sheets = {k: v for k, v in preview_sheets.items() if k != "Synthèse"}
+            except Exception as e:
+                st.error(f"Impossible de lire le fichier : {e}")
+                st.stop()
 
             # --- APERÇU ---
             st.markdown("#### 👀 Aperçu du fichier")
-            try:
-                file_bytes = uploaded_file.read()
-                uploaded_file.seek(0)  # rembobiner pour la suite
+            st.caption(f"Fichier chargé : **{original_filename}**  →  sera publié comme `menu_actuel.xlsx`")
+            plat_names = list(preview_sheets.keys())
+            st.markdown(f"**{len(plat_names)} plat(s) détecté(s) :** {', '.join(plat_names)}")
 
-                preview_sheets = pd.read_excel(
-                    uploaded_file, sheet_name=None, header=None
-                )
-                preview_sheets = {k: v for k, v in preview_sheets.items() if k != "Synthèse"}
-                uploaded_file.seek(0)
-
-                plat_names = list(preview_sheets.keys())
-                st.markdown(f"**{len(plat_names)} plat(s) détecté(s) :** {', '.join(plat_names)}")
-
-                plat_choisi = st.selectbox(
-                    "Voir les ingrédients d'un plat :",
-                    options=plat_names,
-                    key="admin_preview_select"
-                )
-                if plat_choisi:
-                    df_prev = preview_sheets[plat_choisi]
-                    cat_prev = str(df_prev.iloc[0, 1]).strip() if pd.notna(df_prev.iloc[0, 1]) else "?"
-                    st.markdown(f"Catégorie : **{cat_prev}**")
-                    ing_prev = pd.DataFrame({
-                        'Ingrédient': df_prev.iloc[2:, 0],
-                        'Quantité':   df_prev.iloc[2:, 1],
-                        'Unité':      df_prev.iloc[2:, 2],
-                    }).dropna(subset=['Ingrédient']).reset_index(drop=True)
-                    st.dataframe(ing_prev, use_container_width=True)
-
-            except Exception as e:
-                st.warning(f"Impossible d'afficher l'aperçu : {e}")
+            plat_choisi = st.selectbox(
+                "Voir les ingrédients d'un plat :",
+                options=plat_names,
+                key="admin_preview_select"
+            )
+            if plat_choisi:
+                df_prev = preview_sheets[plat_choisi]
+                cat_prev = str(df_prev.iloc[0, 1]).strip() if pd.notna(df_prev.iloc[0, 1]) else "?"
+                st.markdown(f"Catégorie : **{cat_prev}**")
+                ing_prev = pd.DataFrame({
+                    'Ingrédient': df_prev.iloc[2:, 0],
+                    'Quantité':   df_prev.iloc[2:, 1],
+                    'Unité':      df_prev.iloc[2:, 2],
+                }).dropna(subset=['Ingrédient']).reset_index(drop=True)
+                st.dataframe(ing_prev, use_container_width=True)
 
             # --- VALIDATION ---
             st.markdown("#### 🔍 Vérification automatique")
-            uploaded_file.seek(0)
-            ok, result = validate_menu_excel(uploaded_file)
-            uploaded_file.seek(0)
+            ok, result = validate_menu_excel(io.BytesIO(file_bytes), original_filename)
 
             if ok:
                 st.success(f"✅ Fichier valide — {result} plat(s) prêt(s) à être publiés.")
             else:
                 st.error(f"❌ Erreurs détectées :\n\n{result}")
-                st.warning("Corrigez le fichier Excel avant de publier.")
+                st.warning("Corrigez le fichier avant de publier.")
 
             # --- PUBLICATION ---
             if ok:
@@ -721,22 +739,35 @@ with st.expander("🔒 Administration"):
                     try:
                         from github import Github
 
+                        # Conversion en xlsx si nécessaire
+                        ext = original_filename.rsplit(".", 1)[-1].lower()
+                        if ext == "xlsx":
+                            xlsx_content = file_bytes
+                        else:
+                            with st.spinner("Conversion en xlsx…"):
+                                xlsx_content = convert_to_xlsx_bytes(preview_sheets)
+
                         g = Github(st.secrets["GITHUB_TOKEN"])
                         repo = g.get_repo(st.secrets["GITHUB_REPO"])
-                        path = "menu_actuel.xlsx"
+                        github_path = "menu_actuel.xlsx"
 
-                        uploaded_file.seek(0)
-                        content = uploaded_file.read()
+                        try:
+                            contents = repo.get_contents(github_path)
+                            repo.update_file(
+                                path=github_path,
+                                message=f"Mise à jour menu via admin ({original_filename})",
+                                content=xlsx_content,
+                                sha=contents.sha
+                            )
+                        except Exception:
+                            # Fichier absent sur GitHub → création
+                            repo.create_file(
+                                path=github_path,
+                                message=f"Création menu via admin ({original_filename})",
+                                content=xlsx_content
+                            )
 
-                        contents = repo.get_contents(path)
-                        repo.update_file(
-                            path=path,
-                            message="Mise à jour menu via interface admin",
-                            content=content,
-                            sha=contents.sha
-                        )
-
-                        st.success("✅ Menu mis à jour avec succès !")
+                        st.success(f"✅ **{original_filename}** publié avec succès sous `menu_actuel.xlsx` !")
                         st.info("Le site se rechargera automatiquement dans quelques secondes.")
 
                     except Exception as e:
