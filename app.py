@@ -50,10 +50,8 @@ st.markdown("""
         margin-top: 1.5rem !important;
     }
 
-    /* ✅ Texte général : UNIQUEMENT sur éléments texte, pas tous les divs */
     p, label { font-family: 'Lato', sans-serif !important; color: #3B2A1A !important; }
 
-    /* ✅ Inputs texte : fond clair + texte foncé */
     .stTextInput > div > div > input {
         border: 1.5px solid #D4A96A; border-radius: 8px;
         background-color: #FFFDF8 !important; color: #3B2A1A !important;
@@ -65,7 +63,6 @@ st.markdown("""
         color: #B09070 !important;
     }
 
-    /* ✅ Selectbox : fond clair + texte foncé garanti */
     .stSelectbox > div > div {
         border: 1.5px solid #D4A96A !important;
         border-radius: 8px !important;
@@ -75,7 +72,6 @@ st.markdown("""
         color: #3B2A1A !important;
         background-color: #FFFDF8 !important;
     }
-    /* Dropdown ouvert */
     [data-baseweb="popover"], [data-baseweb="menu"] {
         background-color: #FFFDF8 !important;
     }
@@ -91,38 +87,25 @@ st.markdown("""
         color: #3B2A1A !important;
     }
 
-    /* ✅ Checkboxes : label lisible sur fond clair */
     .stCheckbox > label {
         font-size: 0.95rem !important;
         color: #3B2A1A !important;
         font-family: 'Lato', sans-serif !important;
     }
-    .stCheckbox > label > div {
-        color: #3B2A1A !important;
-    }
-    /* Texte à côté de la case */
-    .stCheckbox span {
-        color: #3B2A1A !important;
-    }
+    .stCheckbox > label > div { color: #3B2A1A !important; }
+    .stCheckbox span { color: #3B2A1A !important; }
 
-    /* ✅ Radio buttons : fond clair + texte bien contrasté */
     .stRadio > div {
         background-color: #FEF6E8;
         border-radius: 10px;
         padding: 12px 16px;
         border: 1.5px solid #E8C99A;
     }
-    .stRadio label {
-        color: #3B2A1A !important;
-    }
-    .stRadio span {
-        color: #3B2A1A !important;
-    }
+    .stRadio label { color: #3B2A1A !important; }
+    .stRadio span { color: #3B2A1A !important; }
 
-    /* ✅ Tooltip / help text */
     .stTooltipIcon { color: #C47C2B !important; }
 
-    /* ✅ Bouton principal */
     .stFormSubmitButton > button {
         background-color: #C47C2B !important; color: white !important;
         font-family: 'Cormorant Garamond', serif !important; font-weight: 700 !important;
@@ -132,7 +115,6 @@ st.markdown("""
     .stFormSubmitButton > button:hover { background-color: #A5621E !important; }
     .stFormSubmitButton > button p { color: white !important; }
 
-    /* ✅ Bouton téléchargement */
     .stDownloadButton > button {
         background-color: #C47C2B !important; color: #FFFFFF !important;
         font-family: 'Cormorant Garamond', serif !important; font-weight: 700 !important;
@@ -143,16 +125,13 @@ st.markdown("""
     .stDownloadButton > button:hover { background-color: #A5621E !important; }
     .stDownloadButton > button p { color: #FFFFFF !important; }
 
-    /* ✅ Messages success / error / warning : texte toujours lisible */
     .stAlert > div { color: #3B2A1A !important; }
     .stSuccess > div { color: #1a4a1a !important; }
     .stError > div { color: #6a0000 !important; }
     .stWarning > div { color: #5a3a00 !important; }
 
-    /* ✅ Spinner */
     .stSpinner > div { color: #C47C2B !important; }
 
-    /* --- Blocs décoratifs (inchangés) --- */
     .banner {
         border-radius: 18px; overflow: hidden;
         margin-bottom: 28px; box-shadow: 0 6px 28px rgba(59,42,26,0.40);
@@ -170,7 +149,6 @@ st.markdown("""
         color: #3B2A1A !important;
     }
 
-    /* Catégories */
     .cat-header-entree {
         background: #9DB510; color: white; border-radius: 10px; padding: 9px 16px;
         font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 700;
@@ -245,7 +223,6 @@ def get_logo_base64():
 
 
 def load_menu():
-    """Charge le fichier Excel (nouvelle structure) en ignorant la feuille Synthèse."""
     if not os.path.exists(EXCEL_FILE_PATH):
         return None
     all_sheets = pd.read_excel(EXCEL_FILE_PATH, sheet_name=None, header=None)
@@ -314,7 +291,13 @@ def calculate_groceries(menu_data, selected_dishes, num_guests):
     return df_agg
 
 
-def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selected_dishes=None, menu_data=None):
+def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=None,
+                 num_guests=4, selected_dishes=None, menu_data=None, course_mode="self"):
+    """
+    course_mode: "self"  → client fait ses courses
+                 "valou" → Valou fait les courses
+                 "drive" → Valou passe au drive
+    """
     pdf_filename = f"La_Valise_aux_Epices_{firstname}_{name}.pdf"
 
     ENCRE      = colors.HexColor("#1C1208")
@@ -325,6 +308,19 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     PARCHEMIN  = colors.HexColor("#FBF6EC")
     BLANC      = colors.white
     GRIS       = colors.HexColor("#888888")
+    VERT       = colors.HexColor("#2E7D32")
+    VERT_PALE  = colors.HexColor("#C8E6C9")
+
+    # Couleur et texte du bandeau selon le mode
+    if course_mode == "self":
+        BANDEAU_BG   = VERT
+        BANDEAU_TEXT = "✔  FAIT SES COURSES"
+    elif course_mode == "drive":
+        BANDEAU_BG   = colors.HexColor("#1565C0")
+        BANDEAU_TEXT = "🛒  VALOU PASSE AU DRIVE"
+    else:  # valou
+        BANDEAU_BG   = TERRACOTTA
+        BANDEAU_TEXT = "🛍  VALOU FAIT LES COURSES"
 
     W = 17 * cm
     doc = SimpleDocTemplate(
@@ -343,6 +339,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     sCV  = S('sCV',  fontSize=11, textColor=ENCRE,      fontName='Times-Roman',        leading=15)
     sRM  = S('sRM',  fontSize=8,  textColor=GRIS,       fontName='Helvetica-Oblique',  alignment=TA_CENTER, leading=12)
     sSH  = S('sSH',  fontSize=11, textColor=BLANC,      fontName='Times-Bold',         leading=15, alignment=TA_CENTER)
+    sBAND = S('sBAND', fontSize=11, textColor=BLANC,    fontName='Helvetica-Bold',     leading=15, alignment=TA_CENTER)
 
     elements = []
 
@@ -363,23 +360,35 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
             ('TOPPADDING', (0,0), (-1,-1), 6), ('BOTTOMPADDING', (0,0), (-1,-1), 6),
         ])
     ))
+    # BANDEAU MODE COURSES
+    elements.append(Table(
+        [[Paragraph(BANDEAU_TEXT, sBAND)]], colWidths=[W],
+        style=TableStyle([
+            ('BACKGROUND', (0,0), (-1,-1), BANDEAU_BG),
+            ('TOPPADDING', (0,0), (-1,-1), 7), ('BOTTOMPADDING', (0,0), (-1,-1), 7),
+        ])
+    ))
     elements.append(Table([[""]], colWidths=[W], rowHeights=[3],
         style=TableStyle([('BACKGROUND', (0,0), (-1,-1), OR)])))
     elements.append(Spacer(1, 0.5*cm))
 
-    # FICHE CLIENT
-    col1 = 10.5*cm; col2 = 6.5*cm
+    # FICHE CLIENT — toujours complète
+    col1 = 8.5*cm; col2 = 4*cm; col3 = 4.5*cm
     client_rows = [
-        [Paragraph("CLIENT", sCL),       Paragraph("COUVERTS", sCL)],
+        [Paragraph("CLIENT", sCL),
+         Paragraph("COUVERTS", sCL),
+         Paragraph("TÉLÉPHONE", sCL)],
         [Paragraph(f"{firstname} {name}", sCV),
-         Paragraph(f"{num_guests} personne{'s' if num_guests > 1 else ''}", sCV)],
+         Paragraph(f"{num_guests} personne{'s' if num_guests > 1 else ''}", sCV),
+         Paragraph(phone or "", sCV)],
+        [Paragraph("EMAIL", sCL),
+         Paragraph("ADRESSE", sCL),
+         Paragraph("", sCL)],
+        [Paragraph(email or "", sCV),
+         Paragraph(address or "", sCV),
+         Paragraph("", sCV)],
     ]
-    if address:
-        client_rows += [
-            [Paragraph("ADRESSE DE LIVRAISON", sCL), Paragraph("", sCL)],
-            [Paragraph(address, sCV), Paragraph("", sCV)],
-        ]
-    ct = Table(client_rows, colWidths=[col1, col2])
+    ct = Table(client_rows, colWidths=[col1, col2, col3])
     ct.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), PARCHEMIN),
         ('BOX', (0,0), (-1,-1), 1, OR_PALE),
@@ -387,13 +396,38 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
         ('TOPPADDING', (0,0), (-1,-1), 5), ('BOTTOMPADDING', (0,0), (-1,-1), 5),
         ('LEFTPADDING', (0,0), (-1,-1), 12), ('RIGHTPADDING', (0,0), (-1,-1), 10),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('SPAN', (1,2), (2,2)),
+        ('SPAN', (1,3), (2,3)),
     ]))
     elements.append(ct)
     elements.append(Spacer(1, 0.35*cm))
-    elements.append(Spacer(1, 0.5*cm))
+
+    # PLATS CHOISIS
+    if selected_dishes:
+        elements.append(Table(
+            [[Paragraph("PLATS COMMANDÉS", sSH)]], colWidths=[W],
+            style=TableStyle([
+                ('BACKGROUND', (0,0), (-1,-1), ENCRE),
+                ('TOPPADDING', (0,0), (-1,-1), 6), ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+                ('LINEABOVE', (0,0), (-1,0), 2, OR), ('LINEBELOW', (0,0), (-1,0), 2, OR),
+            ])
+        ))
+        elements.append(Spacer(1, 0.2*cm))
+        sDISH = S('sDISH', fontSize=10, textColor=ENCRE, fontName='Times-Roman', leading=14)
+        for i, dish in enumerate(selected_dishes):
+            bg = PARCHEMIN if i % 2 == 0 else SABLE
+            elements.append(Table(
+                [[Paragraph(f"  • {dish}", sDISH)]], colWidths=[W],
+                style=TableStyle([
+                    ('BACKGROUND', (0,0), (-1,-1), bg),
+                    ('TOPPADDING', (0,0), (-1,-1), 5), ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+                    ('LEFTPADDING', (0,0), (-1,-1), 10),
+                ])
+            ))
+        elements.append(Spacer(1, 0.4*cm))
 
     # RÉCAPITULATIF GLOBAL
-    elements.append(Spacer(1, 0.4*cm))
+    elements.append(Spacer(1, 0.2*cm))
     elements.append(Table(
         [[Paragraph("RECAPITULATIF GLOBAL", sSH)]], colWidths=[W],
         style=TableStyle([
@@ -465,20 +499,43 @@ def generate_pdf(shopping_df, name, firstname, address=None, num_guests=4, selec
     return pdf_filename
 
 
-def send_email(pdf_filename, name, firstname, address, phone, num_guests, selected_dishes):
+def send_email_to_valise(pdf_filename, name, firstname, address, email, phone,
+                         num_guests, selected_dishes, course_mode):
+    """Envoie toujours un récap à La Valise aux Épices."""
+    if course_mode == "self":
+        mode_label = "Fait ses courses lui-même"
+    elif course_mode == "drive":
+        mode_label = "Valou passe au drive (+15€)"
+    else:
+        mode_label = "Valou fait les courses (+25€)"
+
     msg = MIMEMultipart()
     msg['From'] = EMAIL_SENDER
     msg['To'] = EMAIL_RECEIVER
-    msg['Subject'] = f"LVaE {name} {firstname}"
-    body = f"""Nouvelle commande — Valou fait les courses !
+    msg['Subject'] = f"LVaE {name} {firstname} — {mode_label}"
 
-Client : {firstname} {name}
-Adresse : {address}
+    body = f"""Nouvelle commande — La Valise aux Épices
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+INFORMATIONS CLIENT
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Nom       : {firstname} {name}
+Email     : {email}
 Téléphone : {phone}
-Nombre de couverts : {num_guests}
-Plats choisis : {', '.join(selected_dishes)}
+Adresse   : {address}
+Couverts  : {num_guests} personne{'s' if num_guests > 1 else ''}
 
-La liste de courses est en pièce jointe.
+━━━━━━━━━━━━━━━━━━━━━━━━━
+GESTION DES COURSES
+━━━━━━━━━━━━━━━━━━━━━━━━━
+{mode_label}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+PLATS CHOISIS
+━━━━━━━━━━━━━━━━━━━━━━━━━
+{chr(10).join(f'  • {d}' for d in selected_dishes)}
+
+La liste de courses complète est en pièce jointe.
 """
     msg.attach(MIMEText(body, 'plain', 'utf-8'))
     with open(pdf_filename, "rb") as f:
@@ -535,13 +592,20 @@ else:
     with st.form("client_form"):
 
         st.markdown("### 👤 Vos informations")
+        st.markdown("""
+        <div class="info-box">
+            📋 Tous les champs sont obligatoires — ils nous permettent de vous envoyer votre récapitulatif et de préparer votre commande.
+        </div>
+        """, unsafe_allow_html=True)
+
         col1, col2 = st.columns(2)
         with col1:
-            firstname = st.text_input("Prénom", placeholder="Marie")
-            name = st.text_input("Nom", placeholder="Dupont")
+            firstname = st.text_input("Prénom *", placeholder="Marie")
+            name      = st.text_input("Nom *", placeholder="Dupont")
+            email     = st.text_input("Email *", placeholder="marie.dupont@email.com")
         with col2:
-            phone = st.text_input("Téléphone", value="+33 ", placeholder="+33 6 00 00 00 00")
-            address = st.text_input("Adresse complète", placeholder="12 rue des Épices, 83990 Saint-Tropez")
+            phone   = st.text_input("Téléphone *", value="+33 ", placeholder="+33 6 00 00 00 00")
+            address = st.text_input("Adresse complète *", placeholder="12 rue des Épices, 83990 Saint-Tropez")
 
         st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
 
@@ -610,7 +674,7 @@ else:
         st.markdown("### 🛒 Gestion des courses")
         course_option = st.radio(
             "Comment souhaitez-vous gérer les courses ?",
-            options=["Je fais les courses moi-même", "Valou fait les courses (+25€)*","Valou passe au drive (+15€)**"],
+            options=["Je fais les courses moi-même", "Valou fait les courses (+25€)*", "Valou passe au drive (+15€)**"],
             help="Si Valou fait les courses, votre liste lui sera envoyée directement par email."
         )
         st.markdown("""
@@ -625,27 +689,62 @@ else:
 
     # VÉRIFICATIONS & TRAITEMENT
     if submitted:
-        valou_fait_courses = course_option == "Valou fait les courses (+20€)*"
+        # Déterminer le mode
+        if course_option == "Valou fait les courses (+25€)*":
+            course_mode = "valou"
+        elif course_option == "Valou passe au drive (+15€)**":
+            course_mode = "drive"
+        else:
+            course_mode = "self"
 
+        # Validations
+        errors = []
         if not selected_dishes:
-            st.error("⚠️ Veuillez sélectionner au moins un plat.")
-        elif len(selected_dishes) > 5:
-            st.error(f"⚠️ Vous avez sélectionné {len(selected_dishes)} plats. Maximum 5 autorisés.")
-        elif valou_fait_courses and (not name or not firstname or not phone or not address):
-            st.error("⚠️ Veuillez remplir vos informations (Nom, Prénom, Téléphone, Adresse) pour que Valou puisse vous livrer.")
+            errors.append("Veuillez sélectionner au moins un plat.")
+        if len(selected_dishes) > 5:
+            errors.append(f"Vous avez sélectionné {len(selected_dishes)} plats. Maximum 5 autorisés.")
+        if not firstname or not firstname.strip():
+            errors.append("Le prénom est obligatoire.")
+        if not name or not name.strip():
+            errors.append("Le nom est obligatoire.")
+        if not email or "@" not in email:
+            errors.append("Une adresse email valide est obligatoire.")
+        if not phone or len(phone.strip()) < 8:
+            errors.append("Un numéro de téléphone valide est obligatoire.")
+        if not address or not address.strip():
+            errors.append("L'adresse est obligatoire.")
+
+        if errors:
+            for err in errors:
+                st.error(f"⚠️ {err}")
         else:
             with st.spinner("Préparation de votre liste de courses..."):
                 shopping_df = calculate_groceries(menu_data, selected_dishes, num_guests)
                 pdf_path = generate_pdf(
                     shopping_df, name, firstname,
-                    address=address if valou_fait_courses else None,
+                    address=address,
+                    email=email,
+                    phone=phone,
                     num_guests=num_guests,
                     selected_dishes=selected_dishes,
                     menu_data=menu_data,
+                    course_mode=course_mode,
                 )
 
-            if not valou_fait_courses:
+            # Envoi à La Valise aux Épices dans TOUS les cas
+            with st.spinner("Envoi du récapitulatif à La Valise aux Épices..."):
+                send_email_to_valise(
+                    pdf_path, name, firstname, address, email, phone,
+                    num_guests, selected_dishes, course_mode
+                )
+
+            if course_mode == "self":
                 st.success("🎉 Votre liste est prête ! Téléchargez-la ci-dessous.")
+                st.markdown("""
+                <div class="info-box">
+                    📧 Un récapitulatif a également été transmis à La Valise aux Épices.
+                </div>
+                """, unsafe_allow_html=True)
                 with open(pdf_path, "rb") as f:
                     st.download_button(
                         label="📥 Télécharger ma liste de courses (PDF)",
@@ -654,14 +753,12 @@ else:
                         mime="application/pdf"
                     )
             else:
-                with st.spinner("Envoi à Valou en cours..."):
-                    if send_email(pdf_path, name, firstname, address, phone, num_guests, selected_dishes):
-                        st.success("✨ Parfait ! Votre demande a été transmise à Valou. Vous n'avez plus rien à faire !")
-                        st.markdown("""
-                        <div class="info-box">
-                            🕐 Valou va faire vos courses et vous contacter très vite au numéro indiqué.
-                        </div>
-                        """, unsafe_allow_html=True)
+                st.success("✨ Parfait ! Votre demande a été transmise à Valou. Vous n'avez plus rien à faire !")
+                st.markdown("""
+                <div class="info-box">
+                    🕐 Valou va faire vos courses et vous contacter très vite au numéro indiqué.
+                </div>
+                """, unsafe_allow_html=True)
 
             if os.path.exists(pdf_path):
                 os.remove(pdf_path)
@@ -674,7 +771,6 @@ else:
 SUPPORTED_EXTENSIONS = ["xlsx", "xls", "ods", "csv"]
 
 def read_any_file(file_or_bytes, filename=""):
-    """Lit xlsx / xls / ods / csv → dict {sheet_name: DataFrame} (header=None)."""
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "xlsx"
     if ext == "csv":
         df = pd.read_csv(file_or_bytes, header=None)
@@ -685,7 +781,6 @@ def read_any_file(file_or_bytes, filename=""):
 
 
 def convert_to_xlsx_bytes(sheets_dict):
-    """Convertit un dict de DataFrames en bytes xlsx (openpyxl)."""
     buf = io.BytesIO()
     with pd.ExcelWriter(buf, engine="openpyxl") as writer:
         for sheet_name, df in sheets_dict.items():
@@ -694,10 +789,6 @@ def convert_to_xlsx_bytes(sheets_dict):
 
 
 def validate_menu_excel(file_or_bytes, filename=""):
-    """
-    Vérifie que le fichier uploadé a la bonne structure.
-    Retourne (True, nb_plats) ou (False, message_erreur).
-    """
     try:
         all_sheets = read_any_file(file_or_bytes, filename)
         sheets = {k: v for k, v in all_sheets.items() if k != "Synthèse"}
@@ -755,8 +846,6 @@ with st.expander("🔒 Administration"):
 
         if uploaded_file is not None:
             original_filename = uploaded_file.name
-
-            # --- LECTURE ---
             file_bytes = uploaded_file.read()
             uploaded_file.seek(0)
 
@@ -767,7 +856,6 @@ with st.expander("🔒 Administration"):
                 st.error(f"Impossible de lire le fichier : {e}")
                 st.stop()
 
-            # --- APERÇU ---
             st.markdown("#### 👀 Aperçu du fichier")
             st.caption(f"Fichier chargé : **{original_filename}**  →  sera publié comme `menu_actuel.xlsx`")
             plat_names = list(preview_sheets.keys())
@@ -789,7 +877,6 @@ with st.expander("🔒 Administration"):
                 }).dropna(subset=['Ingrédient']).reset_index(drop=True)
                 st.dataframe(ing_prev, use_container_width=True)
 
-            # --- VALIDATION ---
             st.markdown("#### 🔍 Vérification automatique")
             ok, result = validate_menu_excel(io.BytesIO(file_bytes), original_filename)
 
@@ -799,13 +886,11 @@ with st.expander("🔒 Administration"):
                 st.error(f"❌ Erreurs détectées :\n\n{result}")
                 st.warning("Corrigez le fichier avant de publier.")
 
-            # --- PUBLICATION ---
             if ok:
                 if st.button("📤 Publier le nouveau menu", key="admin_publish"):
                     try:
                         from github import Github
 
-                        # Conversion en xlsx si nécessaire
                         ext = original_filename.rsplit(".", 1)[-1].lower()
                         if ext == "xlsx":
                             xlsx_content = file_bytes
@@ -826,7 +911,6 @@ with st.expander("🔒 Administration"):
                                 sha=contents.sha
                             )
                         except Exception:
-                            # Fichier absent sur GitHub → création
                             repo.create_file(
                                 path=github_path,
                                 message=f"Création menu via admin ({original_filename})",
