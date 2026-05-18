@@ -209,7 +209,6 @@ CAT_LABELS = {
     'Dessert':     'DESSERTS',
 }
 
-
 # --- FONCTIONS UTILITAIRES ---
 
 def get_logo_base64():
@@ -221,13 +220,11 @@ def get_logo_base64():
         return f"data:{mime};base64,{data}"
     return None
 
-
 def load_menu():
     if not os.path.exists(EXCEL_FILE_PATH):
         return None
     all_sheets = pd.read_excel(EXCEL_FILE_PATH, sheet_name=None, header=None)
     return {k: v for k, v in all_sheets.items() if k != "Synthèse"}
-
 
 def get_dish_category(df):
     try:
@@ -237,7 +234,6 @@ def get_dish_category(df):
     except Exception:
         pass
     return 'Plat viande'
-
 
 def get_ingredients_df(df):
     data = df.iloc[2:].copy()
@@ -249,7 +245,6 @@ def get_ingredients_df(df):
     }).dropna(subset=['Ingrédient']).reset_index(drop=True)
     return result
 
-
 def normalize_ingredient(name):
     import unicodedata
     name = str(name).strip().lower()
@@ -257,7 +252,6 @@ def normalize_ingredient(name):
     if name.endswith('s') and len(name) > 3:
         name = name[:-1]
     return name
-
 
 def calculate_groceries(menu_data, selected_dishes, num_guests):
     shopping_list = []
@@ -290,14 +284,8 @@ def calculate_groceries(menu_data, selected_dishes, num_guests):
     df_agg = df_agg.sort_values('Plat').reset_index(drop=True)
     return df_agg
 
-
 def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=None,
                  num_guests=4, selected_dishes=None, menu_data=None, course_mode="self"):
-    """
-    course_mode: "self"  → client fait ses courses
-                 "valou" → Valou fait les courses
-                 "drive" → Valou passe au drive
-    """
     pdf_filename = f"La_Valise_aux_Epices_{firstname}_{name}.pdf"
 
     ENCRE      = colors.HexColor("#1C1208")
@@ -309,16 +297,14 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
     BLANC      = colors.white
     GRIS       = colors.HexColor("#888888")
     VERT       = colors.HexColor("#2E7D32")
-    VERT_PALE  = colors.HexColor("#C8E6C9")
 
-    # Couleur et texte du bandeau selon le mode
     if course_mode == "self":
         BANDEAU_BG   = VERT
         BANDEAU_TEXT = "✔  FAIT SES COURSES"
     elif course_mode == "drive":
         BANDEAU_BG   = colors.HexColor("#1565C0")
         BANDEAU_TEXT = "🛒  VALOU PASSE AU DRIVE"
-    else:  # valou
+    else:
         BANDEAU_BG   = TERRACOTTA
         BANDEAU_TEXT = "🛍  VALOU FAIT LES COURSES"
 
@@ -360,7 +346,6 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
             ('TOPPADDING', (0,0), (-1,-1), 6), ('BOTTOMPADDING', (0,0), (-1,-1), 6),
         ])
     ))
-    # BANDEAU MODE COURSES
     elements.append(Table(
         [[Paragraph(BANDEAU_TEXT, sBAND)]], colWidths=[W],
         style=TableStyle([
@@ -372,21 +357,13 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
         style=TableStyle([('BACKGROUND', (0,0), (-1,-1), OR)])))
     elements.append(Spacer(1, 0.5*cm))
 
-    # FICHE CLIENT — toujours complète
+    # FICHE CLIENT
     col1 = 8.5*cm; col2 = 4*cm; col3 = 4.5*cm
     client_rows = [
-        [Paragraph("CLIENT", sCL),
-         Paragraph("COUVERTS", sCL),
-         Paragraph("TÉLÉPHONE", sCL)],
-        [Paragraph(f"{firstname} {name}", sCV),
-         Paragraph(f"{num_guests} personne{'s' if num_guests > 1 else ''}", sCV),
-         Paragraph(phone or "", sCV)],
-        [Paragraph("EMAIL", sCL),
-         Paragraph("ADRESSE", sCL),
-         Paragraph("", sCL)],
-        [Paragraph(email or "", sCV),
-         Paragraph(address or "", sCV),
-         Paragraph("", sCV)],
+        [Paragraph("CLIENT", sCL), Paragraph("COUVERTS", sCL), Paragraph("TÉLÉPHONE", sCL)],
+        [Paragraph(f"{firstname} {name}", sCV), Paragraph(f"{num_guests} personne{'s' if num_guests > 1 else ''}", sCV), Paragraph(phone or "", sCV)],
+        [Paragraph("EMAIL", sCL), Paragraph("ADRESSE", sCL), Paragraph("", sCL)],
+        [Paragraph(email or "", sCV), Paragraph(address or "", sCV), Paragraph("", sCV)],
     ]
     ct = Table(client_rows, colWidths=[col1, col2, col3])
     ct.setStyle(TableStyle([
@@ -396,8 +373,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
         ('TOPPADDING', (0,0), (-1,-1), 5), ('BOTTOMPADDING', (0,0), (-1,-1), 5),
         ('LEFTPADDING', (0,0), (-1,-1), 12), ('RIGHTPADDING', (0,0), (-1,-1), 10),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('SPAN', (1,2), (2,2)),
-        ('SPAN', (1,3), (2,3)),
+        ('SPAN', (1,2), (2,2)), ('SPAN', (1,3), (2,3)),
     ]))
     elements.append(ct)
     elements.append(Spacer(1, 0.35*cm))
@@ -447,7 +423,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
 
     global_rows = list(global_df.iterrows())
     mid = (len(global_rows) + 1) // 2
-    left  = global_rows[:mid]
+    left   = global_rows[:mid]
     right = global_rows[mid:]
     while len(right) < len(left):
         right.append((None, None))
@@ -488,7 +464,6 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
         S('sNOTE', fontSize=9, textColor=GRIS, fontName='Helvetica-Oblique', alignment=TA_LEFT, leading=12)
     ))
 
-    # PIED DE PAGE
     elements.append(Spacer(1, 0.6*cm))
     elements.append(Table([[""]], colWidths=[W], rowHeights=[1.5],
         style=TableStyle([('BACKGROUND', (0,0), (-1,-1), OR)])))
@@ -498,10 +473,9 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
     doc.build(elements)
     return pdf_filename
 
-
-def send_email_to_valise(pdf_filename, name, firstname, address, email, phone,
-                         num_guests, selected_dishes, course_mode):
-    """Envoie toujours un récap à La Valise aux Épices."""
+def send_email_to_valise_and_client(pdf_filename, name, firstname, address, email, phone,
+                                    num_guests, selected_dishes, course_mode):
+    """Envoie l'email à l'entreprise ET au client selon son choix de courses."""
     if course_mode == "self":
         mode_label = "Fait ses courses lui-même"
     elif course_mode == "drive":
@@ -509,12 +483,13 @@ def send_email_to_valise(pdf_filename, name, firstname, address, email, phone,
     else:
         mode_label = "Valou fait les courses (+25€)"
 
-    msg = MIMEMultipart()
-    msg['From'] = EMAIL_SENDER
-    msg['To'] = EMAIL_RECEIVER
-    msg['Subject'] = f"LVaE {name} {firstname} — {mode_label}"
+    # --- 1. EMAIL POUR L'ENTREPRISE (Toujours complet avec le PDF) ---
+    msg_admin = MIMEMultipart()
+    msg_admin['From'] = EMAIL_SENDER
+    msg_admin['To'] = EMAIL_RECEIVER
+    msg_admin['Subject'] = f"LVaE {name} {firstname} — {mode_label}"
 
-    body = f"""Nouvelle commande — La Valise aux Épices
+    body_admin = f"""Nouvelle commande — La Valise aux Épices
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 INFORMATIONS CLIENT
@@ -537,20 +512,74 @@ PLATS CHOISIS
 
 La liste de courses complète est en pièce jointe.
 """
-    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+    msg_admin.attach(MIMEText(body_admin, 'plain', 'utf-8'))
     with open(pdf_filename, "rb") as f:
         attach = MIMEApplication(f.read(), _subtype="pdf")
         attach.add_header('Content-Disposition', 'attachment', filename=pdf_filename)
-        msg.attach(attach)
+        msg_admin.attach(attach)
+
+    # --- 2. EMAIL POUR LE CLIENT (Différent selon le cas) ---
+    msg_client = MIMEMultipart()
+    msg_client['From'] = EMAIL_SENDER
+    msg_client['To'] = email
+    msg_client['Subject'] = f"Votre commande La Valise aux Épices"
+
+    if course_mode == "self":
+        # CAS 1 : Le client fait ses courses -> Il reçoit le récap + le PDF joint
+        body_client = f"""Bonjour {firstname},
+
+Merci pour votre commande ! Comme convenu, vous avez choisi de faire vos courses vous-même.
+
+Vous trouverez votre liste de courses complète au format PDF en pièce jointe de cet e-mail.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+RÉCAPITULATIF DE VOS PLATS
+━━━━━━━━━━━━━━━━━━━━━━━━━
+{chr(10).join(f'  • {d}' for d in selected_dishes)}
+
+Nombre de couverts : {num_guests} personne{'s' if num_guests > 1 else ''}
+
+Bonne cuisine et à très vite !
+La Valise aux Épices
+"""
+        msg_client.attach(MIMEText(body_client, 'plain', 'utf-8'))
+        with open(pdf_filename, "rb") as f:
+            attach_client = MIMEApplication(f.read(), _subtype="pdf")
+            attach_client.add_header('Content-Disposition', 'attachment', filename=f"Ma_liste_de_courses_{firstname}.pdf")
+            msg_client.attach(attach_client)
+    else:
+        # CAS 2 : Valou s'en occupe -> Email ÉCRIT uniquement, pas de PDF
+        body_client = f"""Bonjour {firstname},
+
+Merci pour votre commande ! 
+
+✨ Bonne nouvelle : vous avez choisi l'option "{mode_label}". Vous n'avez donc rien à faire, Valou s'occupe de vos courses !
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+VOTRE REPAS COMMANDÉ
+━━━━━━━━━━━━━━━━━━━━━━━━━
+{chr(10).join(f'  • {d}' for d in selected_dishes)}
+
+Nombre de couverts : {num_guests} personne{'s' if num_guests > 1 else ''}
+
+Valou prendra contact avec vous très prochainement au {phone} pour finaliser l'organisation.
+
+À très bientôt !
+La Valise aux Épices
+"""
+        msg_client.attach(MIMEText(body_client, 'plain', 'utf-8'))
+
+    # --- ENVOI DES EMAILS ---
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        server.send_message(msg)
+        server.send_message(msg_admin)   # Envoi à l'admin
+        server.send_message(msg_client)  # Envoi au client
         server.quit()
         return True
     except Exception as e:
-        st.error(f"Erreur lors de l'envoi de l'email : {e}")
+        st.error(f"Erreur lors de l'envoi des e-mails : {e}")
         return False
 
 
@@ -689,7 +718,6 @@ else:
 
     # VÉRIFICATIONS & TRAITEMENT
     if submitted:
-        # Déterminer le mode
         if course_option == "Valou fait les courses (+25€)*":
             course_mode = "valou"
         elif course_option == "Valou passe au drive (+15€)**":
@@ -697,7 +725,6 @@ else:
         else:
             course_mode = "self"
 
-        # Validations
         errors = []
         if not selected_dishes:
             errors.append("Veuillez sélectionner au moins un plat.")
@@ -718,48 +745,50 @@ else:
             for err in errors:
                 st.error(f"⚠️ {err}")
         else:
-            with st.spinner("Préparation de votre liste de courses..."):
+            with st.spinner("Préparation de votre commande..."):
                 shopping_df = calculate_groceries(menu_data, selected_dishes, num_guests)
                 pdf_path = generate_pdf(
                     shopping_df, name, firstname,
-                    address=address,
-                    email=email,
-                    phone=phone,
-                    num_guests=num_guests,
-                    selected_dishes=selected_dishes,
-                    menu_data=menu_data,
-                    course_mode=course_mode,
+                    address=address, email=email, phone=phone,
+                    num_guests=num_guests, selected_dishes=selected_dishes,
+                    menu_data=menu_data, course_mode=course_mode,
                 )
 
-            # Envoi à La Valise aux Épices dans TOUS les cas
-            with st.spinner("Envoi du récapitulatif à La Valise aux Épices..."):
-                send_email_to_valise(
+            # Envoi des emails (Admin + Client personnalisé)
+            with st.spinner("Envoi des e-mails de confirmation..."):
+                send_email_to_valise_and_client(
                     pdf_path, name, firstname, address, email, phone,
                     num_guests, selected_dishes, course_mode
                 )
 
             if course_mode == "self":
-                st.success("🎉 Votre liste est prête ! Téléchargez-la ci-dessous.")
-                st.markdown("""
+                st.success("🎉 Votre commande est validée !")
+                st.markdown(f"""
                 <div class="info-box">
-                    📧 Un récapitulatif a également été transmis à La Valise aux Épices.
+                    📧 Un e-mail contenant votre <strong>liste de courses complète (PDF)</strong> vient de vous être envoyé à l'adresse <strong>{email}</strong>.
                 </div>
                 """, unsafe_allow_html=True)
+                
+                # Chargement sécurisé en mémoire pour le téléchargement direct sur le site
                 with open(pdf_path, "rb") as f:
-                    st.download_button(
-                        label="📥 Télécharger ma liste de courses (PDF)",
-                        data=f,
-                        file_name=f"La_Valise_aux_Epices_{firstname}.pdf",
-                        mime="application/pdf"
-                    )
+                    pdf_bytes = f.read()
+                
+                st.download_button(
+                    label="📥 Télécharger ma liste de courses immédiatement (PDF)",
+                    data=pdf_bytes,
+                    file_name=f"La_Valise_aux_Epices_{firstname}.pdf",
+                    mime="application/pdf"
+                )
             else:
-                st.success("✨ Parfait ! Votre demande a été transmise à Valou. Vous n'avez plus rien à faire !")
-                st.markdown("""
+                st.success("✨ Parfait ! Votre demande a bien été transmise.")
+                st.markdown(f"""
                 <div class="info-box">
-                    🕐 Valou va faire vos courses et vous contacter très vite au numéro indiqué.
+                    📧 Un récapitulatif écrit de vos plats commandés a été envoyé à <strong>{email}</strong>.<br>
+                    🕐 <strong>Valou va faire vos courses</strong> et vous contactera très vite au <strong>{phone}</strong>. Vous n'avez plus rien à faire !
                 </div>
                 """, unsafe_allow_html=True)
 
+            # Suppression propre du fichier temporaire sur le serveur
             if os.path.exists(pdf_path):
                 os.remove(pdf_path)
 
@@ -779,14 +808,12 @@ def read_any_file(file_or_bytes, filename=""):
     kwargs = {"engine": engine} if engine else {}
     return pd.read_excel(file_or_bytes, sheet_name=None, header=None, **kwargs)
 
-
 def convert_to_xlsx_bytes(sheets_dict):
     buf = io.BytesIO()
     with pd.ExcelWriter(buf, engine="openpyxl") as writer:
         for sheet_name, df in sheets_dict.items():
             df.to_excel(writer, sheet_name=sheet_name, index=False, header=False)
     return buf.getvalue()
-
 
 def validate_menu_excel(file_or_bytes, filename=""):
     try:
@@ -857,7 +884,7 @@ with st.expander("🔒 Administration"):
                 st.stop()
 
             st.markdown("#### 👀 Aperçu du fichier")
-            st.caption(f"Fichier chargé : **{original_filename}**  →  sera publié comme `menu_actuel.xlsx`")
+            st.caption(f"Fichier chargé : **{original_filename}** →  sera publié comme `menu_actuel.xlsx`")
             plat_names = list(preview_sheets.keys())
             st.markdown(f"**{len(plat_names)} plat(s) détecté(s) :** {', '.join(plat_names)}")
 
