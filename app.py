@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import base64
 import smtplib
+import math
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
@@ -209,6 +210,8 @@ CAT_LABELS = {
     'Dessert':     'DESSERTS',
 }
 
+MAX_DISHES = 7  # Nombre maximum de plats sélectionnables
+
 # --- FONCTIONS UTILITAIRES ---
 
 def get_logo_base64():
@@ -254,18 +257,37 @@ def normalize_ingredient(name):
     return name
 
 def calculate_groceries(menu_data, selected_dishes, num_guests):
+    """
+    Calcule la liste de courses.
+    - Plats salés  : ratio proportionnel au nombre de convives (base 4).
+    - Desserts     : arrondi AU PLAFOND par tranche de 4 (ceil(n/4)).
+                     Ainsi 1-4 pers → 1 recette, 5-8 pers → 2 recettes, etc.
+                     Évite les quantités absurdes pour les gâteaux entiers.
+    """
     shopping_list = []
-    ratio = num_guests / 4.0
+    base_persons = 4.0
+
     for dish in selected_dishes:
         df = menu_data[dish]
+        cat = get_dish_category(df)
+
+        if cat == 'Dessert':
+            # Toujours au moins une recette complète ; double si > 4 pers, etc.
+            nb_recipes = math.ceil(num_guests / base_persons)
+            ratio = float(nb_recipes)
+        else:
+            ratio = num_guests / base_persons
+
         ing_df = get_ingredients_df(df)
         for _, row in ing_df.iterrows():
             shopping_list.append({
-                "Plat": dish,
+                "Plat":       dish,
                 "Ingrédient": row['Ingrédient'],
-                "Quantité": row['Quantité'] * ratio,
-                "Unité": row['Unité']
+                "Quantité":   row['Quantité'] * ratio,
+                "Unité":      row['Unité'],
+                "_cat":       cat,
             })
+
     df_all = pd.DataFrame(shopping_list)
     df_all['_key'] = (
         df_all['Ingrédient'].apply(normalize_ingredient)
@@ -283,6 +305,17 @@ def calculate_groceries(menu_data, selected_dishes, num_guests):
     df_agg['Plat'] = pd.Categorical(df_agg['Plat'], categories=selected_dishes, ordered=True)
     df_agg = df_agg.sort_values('Plat').reset_index(drop=True)
     return df_agg
+
+def dessert_note_for_pdf(selected_dishes, menu_data, num_guests):
+    """Renvoie une note sur le nombre de gâteaux si des desserts sont présents."""
+    dessert_dishes = [d for d in selected_dishes if get_dish_category(menu_data[d]) == 'Dessert']
+    if not dessert_dishes:
+        return None
+    nb_recipes = math.ceil(num_guests / 4)
+    if nb_recipes == 1:
+        return f"🍰 Desserts : quantités pour 1 recette (base 4 pers.) — suffit pour {num_guests} convive{'s' if num_guests > 1 else ''}."
+    else:
+        return f"🍰 Desserts : quantités pour {nb_recipes} recettes (base 4 pers. × {nb_recipes}) — pour {num_guests} convives."
 
 def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=None,
                  num_guests=4, selected_dishes=None, menu_data=None, course_mode="self"):
@@ -459,10 +492,21 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
     ]))
     elements.append(gt)
     elements.append(Spacer(1, 0.25*cm))
+
+    # Note placards standard
     elements.append(Paragraph(
         "* pensez à avoir dans vos placards huile, vinaigre, sel, poivre",
         S('sNOTE', fontSize=9, textColor=GRIS, fontName='Helvetica-Oblique', alignment=TA_LEFT, leading=12)
     ))
+
+    # Note desserts si applicable
+    if menu_data and selected_dishes:
+        dessert_note = dessert_note_for_pdf(selected_dishes, menu_data, num_guests)
+        if dessert_note:
+            elements.append(Paragraph(
+                dessert_note,
+                S('sNOTE2', fontSize=9, textColor=GRIS, fontName='Helvetica-Oblique', alignment=TA_LEFT, leading=12)
+            ))
 
     elements.append(Spacer(1, 0.6*cm))
     elements.append(Table([[""]], colWidths=[W], rowHeights=[1.5],
@@ -518,14 +562,13 @@ La liste de courses complète est en pièce jointe.
         attach.add_header('Content-Disposition', 'attachment', filename=pdf_filename)
         msg_admin.attach(attach)
 
-    # --- 2. EMAIL POUR LE CLIENT (Différent selon le cas) ---
+    # --- 2. EMAIL POUR LE CLIENT ---
     msg_client = MIMEMultipart()
     msg_client['From'] = EMAIL_SENDER
     msg_client['To'] = email
     msg_client['Subject'] = f"Votre commande La Valise aux Épices"
 
     if course_mode == "self":
-        # CAS 1 : Le client fait ses courses -> Il reçoit le récap + le PDF joint
         body_client = f"""Bonjour {firstname},
 
 Merci pour votre commande ! Comme convenu, vous avez choisi de faire vos courses vous-même.
@@ -548,7 +591,6 @@ La Valise aux Épices
             attach_client.add_header('Content-Disposition', 'attachment', filename=f"Ma_liste_de_courses_{firstname}.pdf")
             msg_client.attach(attach_client)
     else:
-        # CAS 2 : Valou s'en occupe -> Email ÉCRIT uniquement, pas de PDF
         body_client = f"""Bonjour {firstname},
 
 Merci pour votre commande ! 
@@ -569,13 +611,12 @@ La Valise aux Épices
 """
         msg_client.attach(MIMEText(body_client, 'plain', 'utf-8'))
 
-    # --- ENVOI DES EMAILS ---
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        server.send_message(msg_admin)   # Envoi à l'admin
-        server.send_message(msg_client)  # Envoi au client
+        server.send_message(msg_admin)
+        server.send_message(msg_client)
         server.quit()
         return True
     except Exception as e:
@@ -646,9 +687,10 @@ else:
             help="Les quantités sont calculées automatiquement selon le nombre de convives."
         )
 
-        st.markdown("""
+        st.markdown(f"""
         <div class="info-box">
-            ✨ Choisissez jusqu'à <strong>5 plats</strong> parmi notre sélection ci-dessous.
+            ✨ Choisissez jusqu'à <strong>{MAX_DISHES} plats</strong> parmi notre sélection ci-dessous.
+            <br><small>🍰 <em>Les desserts sont calculés par gâteau entier (doses ajustées à la tranche de 4 pers.) pour éviter les quantités en fractions.</em></small>
         </div>
         """, unsafe_allow_html=True)
 
@@ -728,8 +770,8 @@ else:
         errors = []
         if not selected_dishes:
             errors.append("Veuillez sélectionner au moins un plat.")
-        if len(selected_dishes) > 5:
-            errors.append(f"Vous avez sélectionné {len(selected_dishes)} plats. Maximum 5 autorisés.")
+        if len(selected_dishes) > MAX_DISHES:
+            errors.append(f"Vous avez sélectionné {len(selected_dishes)} plats. Maximum {MAX_DISHES} autorisés.")
         if not firstname or not firstname.strip():
             errors.append("Le prénom est obligatoire.")
         if not name or not name.strip():
@@ -754,7 +796,6 @@ else:
                     menu_data=menu_data, course_mode=course_mode,
                 )
 
-            # Envoi des emails (Admin + Client personnalisé)
             with st.spinner("Envoi des e-mails de confirmation..."):
                 send_email_to_valise_and_client(
                     pdf_path, name, firstname, address, email, phone,
@@ -768,11 +809,10 @@ else:
                     📧 Un e-mail contenant votre <strong>liste de courses complète (PDF)</strong> vient de vous être envoyé à l'adresse <strong>{email}</strong>.
                 </div>
                 """, unsafe_allow_html=True)
-                
-                # Chargement sécurisé en mémoire pour le téléchargement direct sur le site
+
                 with open(pdf_path, "rb") as f:
                     pdf_bytes = f.read()
-                
+
                 st.download_button(
                     label="📥 Télécharger ma liste de courses immédiatement (PDF)",
                     data=pdf_bytes,
@@ -788,7 +828,6 @@ else:
                 </div>
                 """, unsafe_allow_html=True)
 
-            # Suppression propre du fichier temporaire sur le serveur
             if os.path.exists(pdf_path):
                 os.remove(pdf_path)
 
@@ -857,11 +896,12 @@ with st.expander("🔒 Administration"):
 
         st.success("✅ Connecté")
         st.markdown("#### Remplacer le menu")
-        st.markdown("""
+        st.markdown(f"""
         <div class="info-box">
             📋 Formats acceptés : <strong>.xlsx, .xls, .ods, .csv</strong>.<br>
             Le fichier sera automatiquement converti et publié sous le nom
-            <strong>menu_actuel.xlsx</strong> sur GitHub.
+            <strong>menu_actuel.xlsx</strong> sur GitHub.<br>
+            Catégories valides : <strong>{', '.join(CAT_ORDER)}</strong>
         </div>
         """, unsafe_allow_html=True)
 
