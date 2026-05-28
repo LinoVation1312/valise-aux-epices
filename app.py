@@ -22,7 +22,7 @@ EMAIL_SENDER = st.secrets["EMAIL_SENDER"]
 EMAIL_PASSWORD = st.secrets["EMAIL_PASSWORD"]
 EMAIL_RECEIVER = "lavaliseauxepices@gmail.com"
 EXCEL_FILE_PATH = "menu_actuel.xlsx"
-LOGO_PATH = "valise.jpg"
+LOGO_PATH = "valise.png"
 
 st.set_page_config(
     page_title="La Valise aux Épices",
