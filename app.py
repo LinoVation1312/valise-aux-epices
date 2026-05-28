@@ -22,7 +22,7 @@ EMAIL_SENDER = st.secrets["EMAIL_SENDER"]
 EMAIL_PASSWORD = st.secrets["EMAIL_PASSWORD"]
 EMAIL_RECEIVER = "lavaliseauxepices@gmail.com"
 EXCEL_FILE_PATH = "menu_actuel.xlsx"
-LOGO_PATH = "valise.jpg"
+LOGO_PATH = "valise.png"
 
 st.set_page_config(
     page_title="La Valise aux Épices",
@@ -256,13 +256,34 @@ def normalize_ingredient(name):
         name = name[:-1]
     return name
 
+# Unités dénombrables → on arrondit au plafond (impossible d'acheter 0.2 oignon)
+COUNTABLE_UNITS = {
+    'pièce(s)', 'piece(s)', 'pièce', 'piece',
+    'botte', 'bottes',
+    'sachet', 'sachets',
+    'boîte', 'boite', 'boîtes', 'boites',
+    'tranche(s)', 'tranche', 'tranches',
+    'feuille', 'feuilles',
+    'branche', 'branches',
+    'tête', 'tetes', 'têtes',
+    'gousse', 'gousses',
+}
+
+def round_quantity(qty, unit):
+    """Arrondit au plafond les unités dénombrables, garde 1 décimale pour le reste."""
+    u = str(unit).strip().lower()
+    if u in COUNTABLE_UNITS:
+        return math.ceil(qty) if qty > 0 else 0
+    return qty
+
 def calculate_groceries(menu_data, selected_dishes, num_guests):
     """
     Calcule la liste de courses.
     - Plats salés  : ratio proportionnel au nombre de convives (base 4).
     - Desserts     : arrondi AU PLAFOND par tranche de 4 (ceil(n/4)).
                      Ainsi 1-4 pers → 1 recette, 5-8 pers → 2 recettes, etc.
-                     Évite les quantités absurdes pour les gâteaux entiers.
+    - Unités dénombrables (pièce, botte…) : toujours arrondi au plafond
+                     après agrégation (impossible d'acheter 0.2 oignon).
     """
     shopping_list = []
     base_persons = 4.0
@@ -272,7 +293,6 @@ def calculate_groceries(menu_data, selected_dishes, num_guests):
         cat = get_dish_category(df)
 
         if cat == 'Dessert':
-            # Toujours au moins une recette complète ; double si > 4 pers, etc.
             nb_recipes = math.ceil(num_guests / base_persons)
             ratio = float(nb_recipes)
         else:
@@ -301,6 +321,10 @@ def calculate_groceries(menu_data, selected_dishes, num_guests):
         .agg(Ingrédient=('Ingrédient', 'first'), Quantité=('Quantité', 'sum'), Unité=('Unité', 'first'))
         .reset_index()
         .drop(columns='_key')
+    )
+    # Arrondi au plafond pour les unités dénombrables (après agrégation totale)
+    df_agg['Quantité'] = df_agg.apply(
+        lambda r: round_quantity(r['Quantité'], r['Unité']), axis=1
     )
     df_agg['Plat'] = pd.Categorical(df_agg['Plat'], categories=selected_dishes, ordered=True)
     df_agg = df_agg.sort_values('Plat').reset_index(drop=True)
