@@ -266,7 +266,9 @@ COUNTABLE_UNITS = {
     'feuille', 'feuilles',
     'branche', 'branches',
     'tête', 'tetes', 'têtes',
-    'gousse', 'gousses',
+    'gousse', 'gousses', 'gousse(s)',
+    'tranche(s)', 'botte(s)', 'sachet(s)', 'boîte(s)', 'boite(s)',
+    'feuille(s)', 'branche(s)', 'tête(s)', 'tete(s)',
 }
 
 def round_quantity(qty, unit):
@@ -505,7 +507,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
             rcell_r = Paragraph("", sGE)
         global_table_data.append([lcell_l, lcell_r, Paragraph("", sGE), rcell_l, rcell_r])
 
-    gt = Table(global_table_data, colWidths=[6.2*cm, 2.3*cm, 0.8*cm, 6.2*cm, 1.5*cm])
+    gt = Table(global_table_data, colWidths=[6.2*cm, 2.3*cm, 0.8*cm, 5.2*cm, 2.5*cm])
     gt.setStyle(TableStyle([
         ('ROWBACKGROUNDS', (0,0), (-1,-1), [PARCHEMIN, SABLE]),
         ('TOPPADDING', (0,0), (-1,-1), 5), ('BOTTOMPADDING', (0,0), (-1,-1), 5),
