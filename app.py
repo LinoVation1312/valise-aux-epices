@@ -697,7 +697,7 @@ else:
         selected_dishes = []
 
         if dishes_by_category.get('Entrée'):
-            st.markdown('<div class="cat-header-entree">🥗 &nbsp; SALADE OU TARTES</div>', unsafe_allow_html=True)
+            st.markdown('<div class="cat-header-entree">🥗 &nbsp; SALADE, TARTES & ENTRÉES</div>', unsafe_allow_html=True)
             cols = st.columns(3)
             for i, dish in enumerate(dishes_by_category['Entrée']):
                 with cols[i % 3]:
