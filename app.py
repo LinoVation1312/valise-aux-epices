@@ -203,7 +203,7 @@ CAT_ICONS = {
 }
 
 CAT_LABELS = {
-    'Entrée':      'Salade ou tartes',
+    'Entrée':      'Salade, Tartes et Entrées',
     'Plat viande': 'Viande',
     'Plat poisson':'Poisson',
     'Plat végé':   'Végétarien',
