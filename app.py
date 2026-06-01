@@ -757,7 +757,6 @@ else:
         <div class="info-box">
             ✨ Choisissez jusqu'à <strong>{MAX_DISHES} plats</strong> parmi notre sélection ci-dessous.<br>
             <small>👉 <em>L'entrée et le dessert comptent chacun comme 1 plat dans ce total.</em></small>
-            <br><small>🍰 <em>Les desserts sont calculés par gâteau entier (doses ajustées à la tranche de 4 pers.) pour éviter les quantités en fractions.</em></small>
         </div>
         """, unsafe_allow_html=True)
 
