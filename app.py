@@ -811,13 +811,12 @@ else:
         st.markdown("### 🛒 Gestion des courses")
         course_option = st.radio(
             "Comment souhaitez-vous gérer les courses ?",
-            options=["Je fais les courses moi-même", "Valou fait les courses (+25€)*", "Valou passe au drive (+15€)**"],
+            options=["Je fais les courses moi-même", "Valou fait les courses (+25€)*", "Valou passe au drive (+15€)*"],
             help="Si Valou fait les courses, votre liste lui sera envoyée directement par email."
         )
         st.markdown("""
         <p style="font-size:0.60rem; color:#888; margin-top:4px; font-style:italic;">
             * après déduction de 50 % de crédit d'impôt. 
-            ** après déduction de 50 % de crédit d'impôt.
         </p>
         """, unsafe_allow_html=True)
 
