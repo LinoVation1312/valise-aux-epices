@@ -64,6 +64,18 @@ st.markdown("""
         color: #B09070 !important;
     }
 
+    .stTextArea > div > div > textarea {
+        border: 1.5px solid #D4A96A; border-radius: 8px;
+        background-color: #FFFDF8 !important; color: #3B2A1A !important;
+        font-family: 'Lato', sans-serif !important;
+    }
+    .stTextArea > div > div > textarea:focus {
+        border-color: #C47C2B; box-shadow: 0 0 0 2px rgba(196,124,43,0.2);
+    }
+    .stTextArea > div > div > textarea::placeholder {
+        color: #B09070 !important;
+    }
+
     .stSelectbox > div > div {
         border: 1.5px solid #D4A96A !important;
         border-radius: 8px !important;
@@ -279,14 +291,6 @@ def round_quantity(qty, unit):
     return qty
 
 def calculate_groceries(menu_data, selected_dishes, num_guests):
-    """
-    Calcule la liste de courses.
-    - Plats salés  : ratio proportionnel au nombre de convives (base 4).
-    - Desserts     : arrondi AU PLAFOND par tranche de 4 (ceil(n/4)).
-                     Ainsi 1-4 pers → 1 recette, 5-8 pers → 2 recettes, etc.
-    - Unités dénombrables (pièce, botte…) : toujours arrondi au plafond
-                     après agrégation (impossible d'acheter 0.2 oignon).
-    """
     shopping_list = []
     base_persons = 4.0
 
@@ -324,7 +328,6 @@ def calculate_groceries(menu_data, selected_dishes, num_guests):
         .reset_index()
         .drop(columns='_key')
     )
-    # Arrondi au plafond pour les unités dénombrables (après agrégation totale)
     df_agg['Quantité'] = df_agg.apply(
         lambda r: round_quantity(r['Quantité'], r['Unité']), axis=1
     )
@@ -333,7 +336,6 @@ def calculate_groceries(menu_data, selected_dishes, num_guests):
     return df_agg
 
 def dessert_note_for_pdf(selected_dishes, menu_data, num_guests):
-    """Renvoie une note sur le nombre de gâteaux si des desserts sont présents."""
     dessert_dishes = [d for d in selected_dishes if get_dish_category(menu_data[d]) == 'Dessert']
     if not dessert_dishes:
         return None
@@ -344,7 +346,8 @@ def dessert_note_for_pdf(selected_dishes, menu_data, num_guests):
         return f"🍰 Desserts : quantités pour {nb_recipes} recettes (base 4 pers. × {nb_recipes}) — pour {num_guests} convives."
 
 def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=None,
-                 num_guests=4, selected_dishes=None, menu_data=None, course_mode="self"):
+                 num_guests=4, selected_dishes=None, menu_data=None, course_mode="self",
+                 allergies=None, preferences=None):
     pdf_filename = f"La_Valise_aux_Epices_{firstname}_{name}.pdf"
 
     ENCRE      = colors.HexColor("#1C1208")
@@ -356,6 +359,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
     BLANC      = colors.white
     GRIS       = colors.HexColor("#888888")
     VERT       = colors.HexColor("#2E7D32")
+    ROUGE_ALERT = colors.HexColor("#9E0522")
 
     if course_mode == "self":
         BANDEAU_BG   = VERT
@@ -385,6 +389,8 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
     sRM  = S('sRM',  fontSize=8,  textColor=GRIS,       fontName='Helvetica-Oblique',  alignment=TA_CENTER, leading=12)
     sSH  = S('sSH',  fontSize=11, textColor=BLANC,      fontName='Times-Bold',         leading=15, alignment=TA_CENTER)
     sBAND = S('sBAND', fontSize=11, textColor=BLANC,    fontName='Helvetica-Bold',     leading=15, alignment=TA_CENTER)
+    sALERT_LABEL = S('sALERT_LABEL', fontSize=8, textColor=BLANC, fontName='Helvetica-Bold', leading=11)
+    sALERT_VAL   = S('sALERT_VAL',  fontSize=10, textColor=ENCRE, fontName='Times-Roman',    leading=14)
 
     elements = []
 
@@ -436,6 +442,36 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
     ]))
     elements.append(ct)
     elements.append(Spacer(1, 0.35*cm))
+
+    # ALLERGIES & PRÉFÉRENCES (si renseignées)
+    has_allergies = allergies and allergies.strip()
+    has_preferences = preferences and preferences.strip()
+    if has_allergies or has_preferences:
+        elements.append(Table(
+            [[Paragraph("⚠  ALLERGIES & PRÉFÉRENCES", sSH)]], colWidths=[W],
+            style=TableStyle([
+                ('BACKGROUND', (0,0), (-1,-1), ROUGE_ALERT),
+                ('TOPPADDING', (0,0), (-1,-1), 6), ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+                ('LINEABOVE', (0,0), (-1,0), 2, OR), ('LINEBELOW', (0,0), (-1,0), 2, OR),
+            ])
+        ))
+        alert_rows = []
+        if has_allergies:
+            alert_rows.append([Paragraph("ALLERGIES", sALERT_LABEL), Paragraph(allergies.strip(), sALERT_VAL)])
+        if has_preferences:
+            alert_rows.append([Paragraph("PRÉFÉRENCES / MODIFICATIONS", sALERT_LABEL), Paragraph(preferences.strip(), sALERT_VAL)])
+        at = Table(alert_rows, colWidths=[5*cm, 12*cm])
+        at.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (0,-1), colors.HexColor("#C0392B")),
+            ('BACKGROUND', (1,0), (1,-1), colors.HexColor("#FDEDEC")),
+            ('TOPPADDING', (0,0), (-1,-1), 7), ('BOTTOMPADDING', (0,0), (-1,-1), 7),
+            ('LEFTPADDING', (0,0), (-1,-1), 10), ('RIGHTPADDING', (0,0), (-1,-1), 10),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('BOX', (0,0), (-1,-1), 0.5, OR_PALE),
+            ('LINEBELOW', (0,0), (-1,-2), 0.5, OR_PALE),
+        ]))
+        elements.append(at)
+        elements.append(Spacer(1, 0.35*cm))
 
     # PLATS CHOISIS
     if selected_dishes:
@@ -544,7 +580,8 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
     return pdf_filename
 
 def send_email_to_valise_and_client(pdf_filename, name, firstname, address, email, phone,
-                                    num_guests, selected_dishes, course_mode):
+                                    num_guests, selected_dishes, course_mode,
+                                    allergies=None, preferences=None):
     """Envoie l'email à l'entreprise ET au client selon son choix de courses."""
     if course_mode == "self":
         mode_label = "Fait ses courses lui-même"
@@ -553,7 +590,10 @@ def send_email_to_valise_and_client(pdf_filename, name, firstname, address, emai
     else:
         mode_label = "Valou fait les courses (+25€)"
 
-    # --- 1. EMAIL POUR L'ENTREPRISE (Toujours complet avec le PDF) ---
+    allergies_line = f"\nAllergies     : {allergies}" if allergies and allergies.strip() else ""
+    preferences_line = f"\nPréférences   : {preferences}" if preferences and preferences.strip() else ""
+
+    # --- 1. EMAIL POUR L'ENTREPRISE ---
     msg_admin = MIMEMultipart()
     msg_admin['From'] = EMAIL_SENDER
     msg_admin['To'] = EMAIL_RECEIVER
@@ -568,7 +608,7 @@ Nom       : {firstname} {name}
 Email     : {email}
 Téléphone : {phone}
 Adresse   : {address}
-Couverts  : {num_guests} personne{'s' if num_guests > 1 else ''}
+Couverts  : {num_guests} personne{'s' if num_guests > 1 else ''}{allergies_line}{preferences_line}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 GESTION DES COURSES
@@ -715,7 +755,8 @@ else:
 
         st.markdown(f"""
         <div class="info-box">
-            ✨ Choisissez jusqu'à <strong>{MAX_DISHES} plats</strong> parmi notre sélection ci-dessous.
+            ✨ Choisissez jusqu'à <strong>{MAX_DISHES} plats</strong> parmi notre sélection ci-dessous.<br>
+            <small>👉 <em>L'entrée et le dessert comptent chacun comme 1 plat dans ce total.</em></small>
             <br><small>🍰 <em>Les desserts sont calculés par gâteau entier (doses ajustées à la tranche de 4 pers.) pour éviter les quantités en fractions.</em></small>
         </div>
         """, unsafe_allow_html=True)
@@ -776,10 +817,32 @@ else:
         )
         st.markdown("""
         <p style="font-size:0.60rem; color:#888; margin-top:4px; font-style:italic;">
-            * après déduction de 50 % de crédit d'impôt. Prix initial de 50€.       
-            ** après déduction de 50 % de crédit d'impôt. Prix initial de 30€.
+            * après déduction de 50 % de crédit d'impôt. 
+            ** après déduction de 50 % de crédit d'impôt.
         </p>
         """, unsafe_allow_html=True)
+
+        st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+
+        st.markdown("### 🌿 Allergies & Préférences")
+        st.markdown("""
+        <div class="info-box">
+            Ces champs sont <strong>facultatifs</strong>. Renseignez-les si vous avez des allergies ou des préférences alimentaires (ex : sans coriandre, sans noix, je n'aime pas le fenouil…).
+        </div>
+        """, unsafe_allow_html=True)
+
+        allergies = st.text_area(
+            "Allergies alimentaires",
+            placeholder="Ex : allergie aux noix, intolérance au gluten, allergie aux crustacés…",
+            height=80,
+            key="allergies"
+        )
+        preferences = st.text_area(
+            "Préférences / modifications",
+            placeholder="Ex : sans coriandre, je n'aime pas le fenouil, éviter les plats trop épicés…",
+            height=80,
+            key="preferences"
+        )
 
         st.markdown("<br>", unsafe_allow_html=True)
         submitted = st.form_submit_button("✅ Valider ma commande")
@@ -797,7 +860,7 @@ else:
         if not selected_dishes:
             errors.append("Veuillez sélectionner au moins un plat.")
         if len(selected_dishes) > MAX_DISHES:
-            errors.append(f"Vous avez sélectionné {len(selected_dishes)} plats. Maximum {MAX_DISHES} autorisés.")
+            errors.append(f"Vous avez sélectionné {len(selected_dishes)} plats. Maximum {MAX_DISHES} autorisés (entrée et dessert comptent chacun comme 1 plat).")
         if not firstname or not firstname.strip():
             errors.append("Le prénom est obligatoire.")
         if not name or not name.strip():
@@ -820,12 +883,14 @@ else:
                     address=address, email=email, phone=phone,
                     num_guests=num_guests, selected_dishes=selected_dishes,
                     menu_data=menu_data, course_mode=course_mode,
+                    allergies=allergies, preferences=preferences,
                 )
 
             with st.spinner("Envoi des e-mails de confirmation..."):
                 send_email_to_valise_and_client(
                     pdf_path, name, firstname, address, email, phone,
-                    num_guests, selected_dishes, course_mode
+                    num_guests, selected_dishes, course_mode,
+                    allergies=allergies, preferences=preferences,
                 )
 
             if course_mode == "self":
