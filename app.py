@@ -816,7 +816,7 @@ else:
         )
         st.markdown("""
         <p style="font-size:0.60rem; color:#888; margin-top:4px; font-style:italic;">
-            * après déduction de 50 % de crédit d'impôt. 
+            * avant déduction de 50 % de crédit d'impôt. 
         </p>
         """, unsafe_allow_html=True)
 
