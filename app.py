@@ -571,7 +571,7 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
             ))
 
     elements.append(Spacer(1, 0.6*cm))
-elements.append(Table([[""]], colWidths=[W], rowHeights=[1.5],
+    elements.append(Table([[""]], colWidths=[W], rowHeights=[1.5],
         style=TableStyle([('BACKGROUND', (0,0), (-1,-1), OR)])))
     elements.append(Spacer(1, 0.3*cm))
 
