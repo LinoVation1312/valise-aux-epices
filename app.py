@@ -571,8 +571,25 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
             ))
 
     elements.append(Spacer(1, 0.6*cm))
-    elements.append(Table([[""]], colWidths=[W], rowHeights=[1.5],
+elements.append(Table([[""]], colWidths=[W], rowHeights=[1.5],
         style=TableStyle([('BACKGROUND', (0,0), (-1,-1), OR)])))
+    elements.append(Spacer(1, 0.3*cm))
+
+    # Note "avant ma venue"
+    sNOTE_TITLE = S('sNOTE_TITLE', fontSize=9, textColor=TERRACOTTA, fontName='Helvetica-Bold', alignment=TA_LEFT, leading=13)
+    sNOTE_ITEM  = S('sNOTE_ITEM',  fontSize=9, textColor=GRIS,       fontName='Helvetica-Oblique', alignment=TA_LEFT, leading=13)
+
+    elements.append(Paragraph("* avant ma venue :", sNOTE_TITLE))
+    avant_venue_items = [
+        "- sortir les ingrédients secs",
+        "- mettre à disposition casserole, poêle, égouttoir, papier cuisson, film alimentaire...",
+        "- le plan de travail doit être propre et libre",
+        "- sortir vos boîtes (en verre) hermétiques pour le stockage",
+        "- prévoir de la place dans le frigo",
+    ]
+    for item in avant_venue_items:
+        elements.append(Paragraph(f"  {item}", sNOTE_ITEM))
+
     elements.append(Spacer(1, 0.2*cm))
     elements.append(Paragraph("", sRM))
 
