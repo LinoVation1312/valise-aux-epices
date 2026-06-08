@@ -665,7 +665,7 @@ RÉCAPITULATIF DE VOS PLATS
 
 Nombre de couverts : {num_guests} personne{'s' if num_guests > 1 else ''}
 
-Bonne cuisine et à très vite !
+À très vite !
 La Valise aux Épices
 """
         msg_client.attach(MIMEText(body_client, 'plain', 'utf-8'))
