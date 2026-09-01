@@ -364,12 +364,9 @@ def generate_pdf(shopping_df, name, firstname, address=None, email=None, phone=N
     if course_mode == "self":
         BANDEAU_BG   = VERT
         BANDEAU_TEXT = "✔  FAIT SES COURSES"
-    elif course_mode == "drive":
-        BANDEAU_BG   = colors.HexColor("#1565C0")
-        BANDEAU_TEXT = "🛒  VALOU PASSE AU DRIVE"
     else:
         BANDEAU_BG   = TERRACOTTA
-        BANDEAU_TEXT = "🛍  VALOU FAIT LES COURSES"
+        BANDEAU_TEXT = "🛍  VALOU GÈRE LES COURSES"
 
     W = 17 * cm
     doc = SimpleDocTemplate(
@@ -602,10 +599,8 @@ def send_email_to_valise_and_client(pdf_filename, name, firstname, address, emai
     """Envoie l'email à l'entreprise ET au client selon son choix de courses."""
     if course_mode == "self":
         mode_label = "Fait ses courses lui-même"
-    elif course_mode == "drive":
-        mode_label = "Valou passe au drive (+15€)"
     else:
-        mode_label = "Valou fait les courses (+25€)"
+        mode_label = "Valou gère les courses, 1h (25€)"
 
     allergies_line = f"\nAllergies     : {allergies}" if allergies and allergies.strip() else ""
     preferences_line = f"\nPréférences   : {preferences}" if preferences and preferences.strip() else ""
@@ -828,7 +823,7 @@ else:
         st.markdown("### 🛒 Gestion des courses")
         course_option = st.radio(
             "Comment souhaitez-vous gérer les courses ?",
-            options=["Je fais les courses moi-même", "Valou fait les courses (+25€)*", "Valou passe au drive (+15€)*"],
+            options=["Je fais les courses moi-même", "Valou gère les courses, 1h (25€)*"],
             help="Si Valou fait les courses, votre liste lui sera envoyée directement par email."
         )
         st.markdown("""
@@ -864,10 +859,8 @@ else:
 
     # VÉRIFICATIONS & TRAITEMENT
     if submitted:
-        if course_option == "Valou fait les courses (+25€)*":
+        if course_option == "Valou gère les courses, 1h (25€)*":
             course_mode = "valou"
-        elif course_option == "Valou passe au drive (+15€)**":
-            course_mode = "drive"
         else:
             course_mode = "self"
 
